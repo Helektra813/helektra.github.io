@@ -6,13 +6,22 @@
 
   <title>LaTeX to PNG</title>
 
-  <!-- KaTeX 樣式 -->
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.css"
   >
 
   <style>
+    :root {
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --ink: #172033;
+      --muted: #64748b;
+      --border: #dbe3f0;
+      --page: #f3f6fb;
+      --error: #dc2626;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -21,69 +30,116 @@
       margin: 0;
       min-height: 100vh;
       padding: 40px 20px;
-      color: #172033;
-      background: #f3f6fb;
+      color: var(--ink);
+      background: var(--page);
       font-family:
         -apple-system, BlinkMacSystemFont,
-        "Segoe UI", sans-serif;
+        "Segoe UI", "Noto Sans TC", sans-serif;
     }
 
     main {
-      width: min(1100px, 100%);
+      width: min(1180px, 100%);
       margin: 0 auto;
     }
 
     h1 {
-      margin: 0 0 24px;
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+    }
+
+    .subtitle {
+      margin: 8px 0 24px;
+      color: var(--muted);
+      line-height: 1.6;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 24px;
+      align-items: start;
     }
 
     .panel {
+      min-width: 0;
       padding: 24px;
       background: white;
-      border: 1px solid #dbe3f0;
+      border: 1px solid var(--border);
       border-radius: 16px;
+      box-shadow: 0 10px 30px rgb(15 23 42 / 5%);
     }
 
     label {
       display: block;
       margin-bottom: 8px;
-      font-weight: 600;
+      font-weight: 650;
     }
 
     textarea {
       width: 100%;
-      min-height: 300px;
+      min-height: 360px;
       padding: 16px;
       resize: vertical;
 
+      color: var(--ink);
+      background: white;
       border: 1px solid #bac7da;
       border-radius: 10px;
+      outline: none;
 
       font-family: "SFMono-Regular", Consolas, monospace;
       font-size: 15px;
-      line-height: 1.6;
+      line-height: 1.65;
+    }
+
+    textarea:focus,
+    select:focus,
+    button:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgb(37 99 235 / 16%);
+    }
+
+    .hint {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    code {
+      padding: 0.1em 0.35em;
+      background: #eff6ff;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, monospace;
     }
 
     .controls {
       display: flex;
-      align-items: center;
+      align-items: end;
       flex-wrap: wrap;
       gap: 14px;
-      margin-top: 16px;
+      margin-top: 18px;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .control-group label {
+      margin: 0;
+      color: #334155;
+      font-size: 0.86rem;
     }
 
     .inline-label {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin: 0;
-      font-weight: 400;
+      align-self: center;
+      gap: 7px;
+      margin: 18px 0 0;
+      font-weight: 500;
+      white-space: nowrap;
     }
 
     select,
@@ -95,20 +151,22 @@
     }
 
     select {
-      border: 1px solid #bac7da;
+      color: var(--ink);
       background: white;
+      border: 1px solid #bac7da;
     }
 
     button {
+      align-self: end;
       border: 0;
       color: white;
-      background: #2563eb;
+      background: var(--accent);
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 650;
     }
 
     button:hover {
-      background: #1d4ed8;
+      background: var(--accent-hover);
     }
 
     button:disabled {
@@ -116,26 +174,59 @@
       cursor: wait;
     }
 
+    #error {
+      min-height: 24px;
+      margin-top: 12px;
+      color: var(--error);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+    }
+
     .preview-stage {
-      min-height: 420px;
-      display: grid;
-      place-items: center;
+      padding: 0;
       overflow: auto;
     }
 
+    .preview-header {
+      position: sticky;
+      left: 0;
+      padding: 18px 22px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      font-weight: 650;
+    }
+
+    .preview-scroller {
+      display: grid;
+      place-items: center;
+      width: max-content;
+      min-width: 100%;
+      min-height: 500px;
+      padding: 32px;
+    }
+
     #export-area {
+      padding: 40px;
+      color: var(--ink);
+      background: white;
+      border: 2px solid var(--accent);
+      border-radius: 18px;
+    }
+
+    #export-area.is-formula {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-
+      width: max-content;
       min-width: 280px;
       min-height: 150px;
-      padding: 40px;
+    }
 
-      color: #172033;
-      background: white;
-      border: 2px solid #2563eb;
-      border-radius: 18px;
+    #export-area.is-mixed {
+      display: block;
+      width: 680px;
+      min-height: 180px;
     }
 
     #export-area.transparent {
@@ -144,20 +235,42 @@
     }
 
     #preview {
-      font-size: 1.25rem;
+      color: inherit;
+      font-family:
+        Georgia, "Times New Roman",
+        "Noto Serif TC", serif;
+      font-size: 1.15rem;
+      line-height: 1.8;
     }
 
-    #error {
-      min-height: 24px;
-      margin-top: 12px;
-      color: #dc2626;
-      font-family: monospace;
+    #export-area.is-formula #preview {
+      width: max-content;
+      white-space: normal;
+    }
+
+    #export-area.is-mixed #preview {
+      width: 100%;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
-    @media (max-width: 760px) {
+    #preview .katex-display {
+      margin: 1em 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    @media (max-width: 820px) {
+      body {
+        padding: 24px 12px;
+      }
+
       .layout {
         grid-template-columns: 1fr;
+      }
+
+      textarea {
+        min-height: 300px;
       }
     }
   </style>
@@ -167,34 +280,59 @@
   <main>
     <h1>LaTeX → PNG</h1>
 
+    <p class="subtitle">
+      支援純公式，以及一般文字混合行內公式與獨立公式。
+    </p>
+
     <div class="layout">
       <section class="panel">
-        <label for="latex-input">輸入 LaTeX</label>
+        <label for="latex-input">輸入內容</label>
 
-        <textarea id="latex-input" spellcheck="false">\begin{aligned}
-\int_{\frac14}^{\frac34}\frac{1}{2\sqrt{x}}\,dx
-&=\left[\sqrt{x}\right]_{\frac14}^{\frac34} \\[4pt]
-&=\sqrt{\frac34}-\sqrt{\frac14} \\[4pt]
-&=\frac{\sqrt3}{2}-\frac12 \\[4pt]
-&=\boxed{\frac{\sqrt3-1}{2}}.
-\end{aligned}</textarea>
+        <textarea id="latex-input" spellcheck="false">For $\phi_j$, the same argument gives
+\[
+\phi_j(x_i) - \phi_j(x_k) = 0 - 0 = 0,
+\]
+and
+\[
+\phi_j(x_j) - \phi_j(x_k) = 1 - 0 = 1.
+\]</textarea>
+
+        <p class="hint">
+          可輸入純公式，或使用
+          <code>$...$</code>、
+          <code>\(...\)</code>、
+          <code>\[...\]</code>、
+          <code>$$...$$</code>
+          混合一般文字。
+        </p>
 
         <div class="controls">
-          <label class="inline-label">
-            解析度
+          <div class="control-group">
+            <label for="render-mode">解析模式</label>
+
+            <select id="render-mode">
+              <option value="auto" selected>自動判斷</option>
+              <option value="formula">純公式</option>
+              <option value="mixed">文字＋公式</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="scale">解析度</label>
+
             <select id="scale">
               <option value="2">2×</option>
               <option value="3" selected>3×</option>
               <option value="4">4×</option>
             </select>
-          </label>
+          </div>
 
           <label class="inline-label">
             <input type="checkbox" id="transparent">
             透明背景
           </label>
 
-          <button id="download-button">
+          <button id="download-button" type="button">
             下載 PNG
           </button>
         </div>
@@ -203,40 +341,288 @@
       </section>
 
       <section class="panel preview-stage">
-        <div id="export-area">
-          <div id="preview"></div>
+        <div class="preview-header">預覽</div>
+
+        <div class="preview-scroller">
+          <div id="export-area" class="is-mixed">
+            <div id="preview"></div>
+          </div>
         </div>
       </section>
     </div>
   </main>
 
-  <!-- LaTeX 渲染器 -->
+  <!-- KaTeX 核心 -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.js"></script>
 
-  <!-- 將 HTML 節點轉成圖片 -->
+  <!-- 混合文字與公式的自動渲染器 -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/contrib/auto-render.min.js"></script>
+
+  <!-- HTML 轉圖片 -->
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.3/dist/html-to-image.js"></script>
 
   <script>
-    const latexInput = document.getElementById("latex-input");
-    const preview = document.getElementById("preview");
-    const exportArea = document.getElementById("export-area");
-    const errorBox = document.getElementById("error");
+    const latexInput =
+      document.getElementById("latex-input");
 
-    const scaleSelect = document.getElementById("scale");
+    const preview =
+      document.getElementById("preview");
+
+    const exportArea =
+      document.getElementById("export-area");
+
+    const errorBox =
+      document.getElementById("error");
+
+    const renderModeSelect =
+      document.getElementById("render-mode");
+
+    const scaleSelect =
+      document.getElementById("scale");
+
     const transparentInput =
       document.getElementById("transparent");
 
     const downloadButton =
       document.getElementById("download-button");
 
-    function renderFormula() {
+    /*
+     * 自動渲染時辨識的公式分隔符號。
+     * $$ 必須放在 $ 前面，否則會被優先誤判成兩個單一 $。
+     */
+    const mathDelimiters = [
+      {
+        left: "$$",
+        right: "$$",
+        display: true
+      },
+      {
+        left: "\\[",
+        right: "\\]",
+        display: true
+      },
+      {
+        left: "\\(",
+        right: "\\)",
+        display: false
+      },
+      {
+        left: "$",
+        right: "$",
+        display: false
+      }
+    ];
+
+    /*
+     * 如果從 ChatGPT 複製的是：
+     *
+     * ```latex
+     * x^2+1
+     * ```
+     *
+     * 就自動移除最外層的 Markdown code fence。
+     */
+    function removeCodeFence(source) {
+      const text = source.trim();
+
+      const match = text.match(
+        /^```(?:latex|tex)?\s*\n?([\s\S]*?)\n?```$/i
+      );
+
+      return match ? match[1].trim() : text;
+    }
+
+    /*
+     * 純公式模式使用 katex.render()。
+     * katex.render() 不需要外層的 \[...\] 或 $...$，
+     * 因此要先移除。
+     */
+    function unwrapSingleFormula(source) {
+      const text = source.trim();
+
+      if (
+        text.startsWith("\\[") &&
+        text.endsWith("\\]")
+      ) {
+        return {
+          latex: text.slice(2, -2).trim(),
+          displayMode: true
+        };
+      }
+
+      if (
+        text.startsWith("$$") &&
+        text.endsWith("$$")
+      ) {
+        return {
+          latex: text.slice(2, -2).trim(),
+          displayMode: true
+        };
+      }
+
+      if (
+        text.startsWith("\\(") &&
+        text.endsWith("\\)")
+      ) {
+        return {
+          latex: text.slice(2, -2).trim(),
+          displayMode: false
+        };
+      }
+
+      if (
+        text.startsWith("$") &&
+        text.endsWith("$") &&
+        !text.startsWith("$$")
+      ) {
+        return {
+          latex: text.slice(1, -1).trim(),
+          displayMode: false
+        };
+      }
+
+      return {
+        latex: text,
+        displayMode: true
+      };
+    }
+
+    /*
+     * 自動判斷應使用：
+     *
+     * formula：整段都是一個公式
+     * mixed：一般文字中含有一個或多個公式
+     */
+    function chooseRenderMode(source) {
+      if (renderModeSelect.value !== "auto") {
+        return renderModeSelect.value;
+      }
+
+      const hasMathDelimiter =
+        source.includes("$$") ||
+        source.includes("\\[") ||
+        source.includes("\\(") ||
+        source.includes("$");
+
+      /*
+       * KaTeX auto-render 可以直接識別部分獨立環境，
+       * 例如 align、equation 和 gather。
+       */
+      const hasStandaloneEnvironment =
+        /\\begin\{(?:align\*?|alignat\*?|equation\*?|gather\*?|multline\*?|CD)\}/
+          .test(source);
+
+      const hasChineseProse =
+        /[\u3400-\u9fff]/.test(source);
+
+      const hasEnglishProse =
+        /[A-Za-z]{2,}\s+[A-Za-z]{2,}/.test(source);
+
+      if (
+        hasMathDelimiter ||
+        hasStandaloneEnvironment ||
+        hasChineseProse ||
+        hasEnglishProse
+      ) {
+        return "mixed";
+      }
+
+      return "formula";
+    }
+
+    function setPreviewLayout(mode) {
+      exportArea.classList.toggle(
+        "is-formula",
+        mode === "formula"
+      );
+
+      exportArea.classList.toggle(
+        "is-mixed",
+        mode === "mixed"
+      );
+    }
+
+    /*
+     * 渲染整段純公式。
+     */
+    function renderFormulaOnly(source) {
+      const result = unwrapSingleFormula(source);
+
+      katex.render(result.latex, preview, {
+        displayMode: result.displayMode,
+        throwOnError: true,
+        trust: false,
+        strict: "warn"
+      });
+    }
+
+    /*
+     * 渲染一般文字和多個公式。
+     *
+     * 必須先使用 textContent，不能使用 innerHTML，
+     * 避免使用者輸入的 HTML 被執行。
+     */
+    function renderMixedContent(source) {
+      let automaticRenderError = null;
+
+      preview.textContent = source;
+
+      renderMathInElement(preview, {
+        delimiters: mathDelimiters,
+        throwOnError: true,
+        trust: false,
+        strict: "warn",
+
+        errorCallback(message, error) {
+          automaticRenderError =
+            error || new Error(message);
+        }
+      });
+
+      if (automaticRenderError) {
+        throw automaticRenderError;
+      }
+    }
+
+    /*
+     * 主要渲染函數。
+     */
+    function renderContent() {
       try {
-        katex.render(latexInput.value, preview, {
-          displayMode: true,
-          throwOnError: true,
-          trust: false,
-          strict: "warn"
-        });
+        if (typeof katex === "undefined") {
+          throw new Error(
+            "KaTeX 載入失敗，請檢查網路連線。"
+          );
+        }
+
+        const source =
+          removeCodeFence(latexInput.value);
+
+        if (!source) {
+          preview.textContent = "";
+          errorBox.textContent = "";
+          return true;
+        }
+
+        const mode =
+          chooseRenderMode(source);
+
+        setPreviewLayout(mode);
+        preview.replaceChildren();
+
+        if (mode === "mixed") {
+          if (
+            typeof renderMathInElement === "undefined"
+          ) {
+            throw new Error(
+              "KaTeX 自動渲染模組載入失敗。"
+            );
+          }
+
+          renderMixedContent(source);
+        } else {
+          renderFormulaOnly(source);
+        }
 
         errorBox.textContent = "";
         return true;
@@ -247,53 +633,97 @@
       }
     }
 
-    latexInput.addEventListener("input", renderFormula);
+    /*
+     * 輸入或切換模式時立即重新渲染。
+     */
+    latexInput.addEventListener(
+      "input",
+      renderContent
+    );
 
-    transparentInput.addEventListener("change", () => {
-      exportArea.classList.toggle(
-        "transparent",
-        transparentInput.checked
-      );
-    });
+    renderModeSelect.addEventListener(
+      "change",
+      renderContent
+    );
 
-    downloadButton.addEventListener("click", async () => {
-      if (!renderFormula()) {
-        return;
-      }
-
-      downloadButton.disabled = true;
-      downloadButton.textContent = "產生中……";
-
-      try {
-        // 等待 KaTeX 字型載入完成
-        await document.fonts.ready;
-
-        const pngDataUrl = await htmlToImage.toPng(
-          exportArea,
-          {
-            pixelRatio: Number(scaleSelect.value),
-            cacheBust: true
-          }
+    /*
+     * 透明背景。
+     */
+    transparentInput.addEventListener(
+      "change",
+      () => {
+        exportArea.classList.toggle(
+          "transparent",
+          transparentInput.checked
         );
-
-        const link = document.createElement("a");
-
-        link.download = "latex-formula.png";
-        link.href = pngDataUrl;
-
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      } catch (error) {
-        errorBox.textContent =
-          "圖片產生失敗：" + error.message;
-      } finally {
-        downloadButton.disabled = false;
-        downloadButton.textContent = "下載 PNG";
       }
-    });
+    );
 
-    renderFormula();
+    /*
+     * 下載 PNG。
+     */
+    downloadButton.addEventListener(
+      "click",
+      async () => {
+        if (!renderContent()) {
+          return;
+        }
+
+        if (typeof htmlToImage === "undefined") {
+          errorBox.textContent =
+            "圖片輸出模組載入失敗，請檢查網路連線。";
+
+          return;
+        }
+
+        downloadButton.disabled = true;
+        downloadButton.textContent = "產生中……";
+
+        try {
+          /*
+           * 防止 KaTeX 字型尚未載入完成，
+           * 導致輸出的 PNG 缺字或排版錯誤。
+           */
+          await document.fonts.ready;
+
+          const pngDataUrl =
+            await htmlToImage.toPng(
+              exportArea,
+              {
+                pixelRatio:
+                  Number(scaleSelect.value),
+
+                cacheBust: true
+              }
+            );
+
+          const link =
+            document.createElement("a");
+
+          link.download =
+            "latex-content.png";
+
+          link.href =
+            pngDataUrl;
+
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        } catch (error) {
+          errorBox.textContent =
+            "圖片產生失敗：" + error.message;
+        } finally {
+          downloadButton.disabled = false;
+          downloadButton.textContent =
+            "下載 PNG";
+        }
+      }
+    );
+
+    /*
+     * 網頁第一次載入時立即預覽。
+     */
+    renderContent();
   </script>
 </body>
 </html>
