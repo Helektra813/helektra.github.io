@@ -37,12 +37,11 @@
   <style>
     :root {
       color-scheme: light;
-      --ink: #172033;
-      --muted: #66758c;
-      --line: #dbe3f0;
       --accent: #2563eb;
-      --accent-dark: #1d4ed8;
-      --surface: #ffffff;
+      --accent-hover: #1d4ed8;
+      --ink: #172033;
+      --muted: #64748b;
+      --border: #dbe3f0;
       --page: #f3f6fb;
       --error: #dc2626;
       --success: #137a55;
@@ -58,26 +57,26 @@
       padding: 40px 20px;
       color: var(--ink);
       background: var(--page);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", sans-serif;
     }
 
     main {
-      width: min(1120px, 100%);
+      width: min(1180px, 100%);
       margin: 0 auto;
     }
 
-    .page-header {
-      margin-bottom: 24px;
+    h1, h2 {
+      margin-top: 0;
     }
 
     h1 {
-      margin: 0;
-      font-size: clamp(2rem, 5vw, 2.8rem);
+      margin-bottom: 0;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
       letter-spacing: -0.035em;
     }
 
     .subtitle {
-      margin: 9px 0 0;
+      margin: 8px 0 24px;
       color: var(--muted);
       line-height: 1.6;
     }
@@ -86,100 +85,92 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 24px;
-      align-items: stretch;
+      align-items: start;
     }
 
     .panel {
       min-width: 0;
-      padding: 24px;
-      border: 1px solid var(--line);
+      background: white;
+      border: 1px solid var(--border);
       border-radius: 16px;
-      background: var(--surface);
-      box-shadow: 0 12px 35px rgba(33, 52, 85, 0.06);
+      box-shadow: 0 10px 30px rgb(15 23 42 / 5%);
     }
 
-    .input-heading,
-    .preview-heading {
+    .input-panel {
+      padding: 24px;
+    }
+
+    .input-heading {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 14px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
-    h2 {
+    .input-heading h2 {
       margin: 0;
-      font-size: 1rem;
+      font-size: 1.2rem;
     }
 
     label {
       display: block;
+      margin-bottom: 6px;
       font-weight: 650;
+      color: #334155;
+      font-size: 0.86rem;
     }
 
-    textarea,
-    select,
-    button,
-    input {
+    textarea, select, button, input {
       font: inherit;
     }
 
     textarea {
       display: block;
       width: 100%;
-      min-height: 300px;
+      min-height: 330px;
       padding: 16px;
       resize: vertical;
-      color: #14213a;
+      color: var(--ink);
+      background: white;
       border: 1px solid #bac7da;
       border-radius: 10px;
       outline: none;
-      background: #fcfdff;
-      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-family: "SFMono-Regular", Consolas, monospace;
       font-size: 15px;
-      line-height: 1.6;
-      tab-size: 2;
+      line-height: 1.65;
     }
 
-    textarea:focus,
-    select:focus-visible,
-    button:focus-visible,
-    input:focus-visible {
+    textarea:focus, select:focus-visible, button:focus-visible, input:focus-visible {
       border-color: var(--accent);
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      outline: 3px solid rgb(37 99 235 / 18%);
+      outline-offset: 1px;
     }
 
     select {
+      width: 100%;
       min-height: 42px;
-      padding: 8px 34px 8px 11px;
+      padding: 8px 14px;
       color: var(--ink);
+      background: white;
       border: 1px solid #bac7da;
       border-radius: 8px;
-      background: #ffffff;
       cursor: pointer;
+      font-size: 15px;
     }
 
     #example {
       width: auto;
       min-width: 150px;
+      min-height: 36px;
+      padding: 6px 12px;
     }
 
     .controls {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .control-label {
-      margin-bottom: 6px;
-      color: #40506a;
-      font-size: 0.78rem;
-    }
-
-    .controls select {
-      width: 100%;
+      gap: 16px;
+      margin-top: 20px;
     }
 
     .checkbox-control {
@@ -196,8 +187,9 @@
       align-items: center;
       gap: 8px;
       width: 100%;
+      margin: 0;
       font-size: 0.9rem;
-      font-weight: 400;
+      font-weight: 500;
       cursor: pointer;
     }
 
@@ -208,74 +200,83 @@
       accent-color: var(--accent);
     }
 
-    button {
+    .primary-button {
       width: 100%;
       min-height: 46px;
-      margin-top: 18px;
+      margin-top: 16px;
       padding: 10px 16px;
       border: 0;
       border-radius: 9px;
-      color: #ffffff;
+      color: white;
       background: var(--accent);
       cursor: pointer;
-      font-weight: 700;
-      transition: background 120ms ease, transform 120ms ease;
+      font-weight: 650;
+      transition: background 120ms ease;
     }
 
-    button:hover:not(:disabled) {
-      background: var(--accent-dark);
-      transform: translateY(-1px);
+    .primary-button:hover:not(:disabled) {
+      background: var(--accent-hover);
     }
 
-    button:disabled {
-      opacity: 0.58;
+    .primary-button:disabled {
+      opacity: 0.6;
       cursor: wait;
     }
 
-    #message {
+    .message-box {
       min-height: 24px;
       margin-top: 12px;
       color: var(--muted);
       font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       line-height: 1.5;
       white-space: pre-wrap;
     }
 
-    #message.error {
-      color: var(--error);
-    }
-
-    #message.success {
-      color: var(--success);
-    }
+    .message-box.error { color: var(--error); }
+    .message-box.success { color: var(--success); }
 
     .support-box {
-      margin-top: 8px;
+      margin-top: 12px;
       padding: 12px 14px;
       border-radius: 9px;
       color: #53627a;
       background: #f5f8fd;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       line-height: 1.55;
     }
 
-    .support-box strong {
-      color: #32435e;
-    }
-
+    .support-box strong { color: #32435e; }
     code {
-      padding: 0.08em 0.32em;
+      padding: 0.1em 0.35em;
+      background: #eff6ff;
       border-radius: 4px;
-      color: #244c9b;
-      background: #eaf0fb;
+      color: #1d4ed8;
       font-family: "SFMono-Regular", Consolas, monospace;
     }
 
-    .preview-panel {
+    /* PREVIEW STAGE STYLES */
+    .preview-stage {
       display: flex;
-      min-height: 570px;
       flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+      min-height: 600px;
+    }
+
+    .preview-header {
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 22px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      font-weight: 650;
+      font-size: 1.1rem;
     }
 
     #status {
@@ -283,113 +284,91 @@
       align-items: center;
       gap: 7px;
       color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 650;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
     #status::before {
-      width: 7px;
-      height: 7px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: #94a3b8;
       content: "";
     }
+    #status.ready::before { background: #16a36a; }
+    #status.error::before { background: #dc2626; }
 
-    #status.ready::before {
-      background: #16a36a;
-    }
-
-    #status.error::before {
-      background: #dc2626;
-    }
-
-    .preview-stage {
+    .preview-scroller {
       display: grid;
-      min-width: 0;
-      flex: 1;
       place-items: center;
+      flex: 1;
       overflow: auto;
-      padding: 30px;
-      border: 1px solid #e1e7f0;
-      border-radius: 12px;
-      background-color: #f1f5f9;
+      padding: 40px;
+      background-color: var(--page);
     }
 
-    #export-area {
+    #formula-export-area {
+      color: var(--ink);
+      background: white;
+      border: 2px solid var(--accent);
+      border-radius: 18px;
+      padding: 40px;
+      transition: border-color 150ms ease, background 150ms ease;
+    }
+
+    #formula-export-area.transparent {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    /* Auto layout width based on content type */
+    #formula-export-area.is-formula {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: var(--ink);
-      background: #ffffff;
-      box-shadow: 0 10px 28px rgba(30, 47, 77, 0.16);
+      width: max-content;
+      min-width: 250px;
+    }
+
+    #formula-export-area.is-mixed {
+      display: block;
+      width: 680px;
       max-width: 100%;
     }
 
-    #export-area.transparent {
-      background: transparent;
-      box-shadow: none;
+    #formula-preview {
+      color: inherit;
+      font-family: Georgia, "Times New Roman", "Cambria Math", serif;
+      line-height: 1.7;
     }
 
-    #preview {
-      display: inline-block;
-      max-width: 100%;
-    }
-    
-    #preview:not(.text-mode) {
+    #formula-export-area.is-formula #formula-preview {
+      width: max-content;
       white-space: nowrap;
     }
 
-    #preview.text-mode {
+    #formula-export-area.is-mixed #formula-preview {
+      width: 100%;
       white-space: pre-wrap;
       word-wrap: break-word;
-      line-height: 1.6;
       text-align: left;
     }
 
-    #preview .katex-display {
+    #formula-preview .katex-display {
       margin: 1em 0;
     }
 
     .placeholder {
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    @media (max-width: 800px) {
+    @media (max-width: 860px) {
       .layout {
         grid-template-columns: 1fr;
       }
-
-      .preview-panel {
-        min-height: 430px;
-      }
-    }
-
-    @media (max-width: 520px) {
-      body {
-        padding: 24px 12px;
-      }
-
-      .panel {
-        padding: 18px;
-      }
-
-      .input-heading {
-        align-items: stretch;
-        flex-direction: column;
-      }
-
-      #example,
-      .controls {
-        width: 100%;
-      }
-
-      .controls {
-        grid-template-columns: 1fr;
-      }
-
       .preview-stage {
-        padding: 20px;
+        min-height: 480px;
       }
     }
   </style>
@@ -403,7 +382,7 @@
     </header>
 
     <div class="layout">
-      <section class="panel" aria-labelledby="input-title">
+      <section class="panel input-panel" aria-labelledby="input-title">
         <div class="input-heading">
           <h2 id="input-title">Input</h2>
 
@@ -412,7 +391,6 @@
             <option value="mixed">Mixed text & formulas</option>
             <option value="spectral">Spectral theorem</option>
             <option value="integral">Integral</option>
-            <option value="aligned">Aligned equations</option>
             <option value="cases">Cases</option>
             <option value="matrix">Matrix</option>
           </select>
@@ -422,7 +400,7 @@
 
         <div class="controls">
           <div>
-            <label class="control-label" for="formula-size">Output size</label>
+            <label for="formula-size">Output size</label>
             <select id="formula-size">
               <option value="1">Small</option>
               <option value="1.25" selected>Medium</option>
@@ -432,7 +410,7 @@
           </div>
 
           <div>
-            <label class="control-label" for="padding">Export padding</label>
+            <label for="padding">Export padding</label>
             <select id="padding">
               <option value="20">20 px</option>
               <option value="40" selected>40 px</option>
@@ -442,7 +420,7 @@
           </div>
 
           <div>
-            <label class="control-label" for="scale">PNG resolution</label>
+            <label for="scale">PNG resolution</label>
             <select id="scale">
               <option value="2">2×</option>
               <option value="3" selected>3×</option>
@@ -453,28 +431,28 @@
           <div class="checkbox-control">
             <label for="transparent">
               <input id="transparent" type="checkbox">
-              Transparent background
+              Transparent bg
             </label>
           </div>
         </div>
 
-        <button id="download-button" type="button" disabled>Download PNG</button>
-        <div id="message" aria-live="polite">Loading KaTeX…</div>
+        <button id="download-button" class="primary-button" type="button" disabled>Download PNG</button>
+        <div id="message" class="message-box" aria-live="polite">Loading KaTeX…</div>
 
         <div class="support-box">
-          <strong>Smart Auto-Render:</strong> Paste pure equations, multiple <code>\begin{...}</code> blocks, or text mixed with formulas.
+          <strong>Smart Auto-Render:</strong> Paste pure equations, multiple <code>\begin{...}</code> blocks, or text mixed with <code>$$...$$</code> formulas.
         </div>
       </section>
 
-      <section class="panel preview-panel" aria-labelledby="preview-title">
-        <div class="preview-heading">
-          <h2 id="preview-title">Preview</h2>
+      <section class="panel preview-stage" aria-labelledby="preview-title">
+        <div class="preview-header">
+          <span id="preview-title">Formula Preview</span>
           <span id="status">Loading</span>
         </div>
 
-        <div class="preview-stage">
-          <div id="export-area">
-            <div id="preview">
+        <div class="preview-scroller">
+          <div id="formula-export-area" class="is-formula">
+            <div id="formula-preview">
               <span class="placeholder">Preparing KaTeX…</span>
             </div>
           </div>
@@ -520,11 +498,6 @@ This equals
 &= \boxed{\frac{\sqrt3-1}{2}}.
 \end{aligned}`,
 
-      aligned: String.raw`\begin{aligned}
-\phi_j(x_i)-\phi_j(x_k) &= 0-0=0, \\[5pt]
-\phi_j(x_j)-\phi_j(x_k) &= 1-0=1.
-\end{aligned}`,
-
       cases: String.raw`f(x)=
 \begin{cases}
 x^2, & x\ge 0, \\
@@ -550,8 +523,9 @@ d & -b \\
     const paddingSelect = document.getElementById("padding");
     const scaleSelect = document.getElementById("scale");
     const transparentInput = document.getElementById("transparent");
-    const preview = document.getElementById("preview");
-    const exportArea = document.getElementById("export-area");
+    
+    const formulaPreview = document.getElementById("formula-preview");
+    const formulaExportArea = document.getElementById("formula-export-area");
     const downloadButton = document.getElementById("download-button");
     const message = document.getElementById("message");
     const status = document.getElementById("status");
@@ -562,7 +536,7 @@ d & -b \\
 
     function setMessage(text, type = "") {
       message.textContent = text;
-      message.className = type;
+      message.className = `message-box ${type}`;
     }
 
     function setStatus(text, type = "") {
@@ -592,14 +566,13 @@ d & -b \\
           break;
         }
       }
-
       return latex;
     }
 
     function updateExportStyle() {
-      exportArea.style.padding = `${Number(paddingSelect.value)}px`;
-      exportArea.classList.toggle("transparent", transparentInput.checked);
-      preview.style.fontSize = `${Number(sizeSelect.value)}rem`;
+      formulaExportArea.style.padding = `${Number(paddingSelect.value)}px`;
+      formulaExportArea.classList.toggle("transparent", transparentInput.checked);
+      formulaPreview.style.fontSize = `${Number(sizeSelect.value)}rem`;
     }
 
     function renderFormula() {
@@ -609,7 +582,7 @@ d & -b \\
       const rawValue = latexInput.value;
 
       if (!rawValue.trim()) {
-        preview.replaceChildren();
+        formulaPreview.replaceChildren();
         setStatus("Empty", "error");
         setMessage("Enter content to begin.", "error");
         return false;
@@ -623,10 +596,7 @@ d & -b \\
 
       updateExportStyle();
 
-      // Detection logic:
-      // 1. Contains standard math delimiters ($$, $, \[, \])
-      // 2. Contains any Chinese / CJK characters
-      // 3. Contains multiple \begin{...} blocks
+      // Smart Detection Logic
       const hasDelimiters = /(\$\$|\\\[|\\\]|\\\(|\\\)|(^|[^\\])\$)/.test(rawValue);
       const hasChinese = /[\u4e00-\u9fa5]/.test(rawValue);
       const beginMatches = rawValue.match(/\\begin\{[a-zA-Z*]+\}/g);
@@ -634,17 +604,19 @@ d & -b \\
 
       const shouldUseTextMode = hasDelimiters || hasChinese || hasMultipleEnvironments;
 
+      // Adjust box width dynamically based on content type
+      formulaExportArea.classList.toggle("is-mixed", shouldUseTextMode);
+      formulaExportArea.classList.toggle("is-formula", !shouldUseTextMode);
+
       try {
         if (shouldUseTextMode) {
           if (typeof renderMathInElement === "undefined") {
             throw new Error("KaTeX auto-render extension is not loaded yet.");
           }
           
-          preview.className = "text-mode";
-          preview.textContent = rawValue;
+          formulaPreview.textContent = rawValue;
           
-          // Auto-support for delimiters and environments
-          renderMathInElement(preview, {
+          renderMathInElement(formulaPreview, {
             delimiters: [
               {left: '$$', right: '$$', display: true},
               {left: '\\[', right: '\\]', display: true},
@@ -664,18 +636,16 @@ d & -b \\
             strict: "warn"
           });
         } else {
-          // Single pure LaTeX formula mode
-          preview.className = "";
           const latex = normalizeLatex(rawValue);
 
           if (/\\(?:documentclass|usepackage|begin\s*\{document\})/.test(latex)) {
-            preview.replaceChildren();
+            formulaPreview.replaceChildren();
             setStatus("Formula only", "error");
             setMessage("Paste only the formula, not a complete LaTeX document.", "error");
             return false;
           }
 
-          katex.render(latex, preview, {
+          katex.render(latex, formulaPreview, {
             displayMode: true,
             throwOnError: true,
             trust: false,
@@ -690,7 +660,7 @@ d & -b \\
         setMessage("Rendered successfully.", "success");
         return true;
       } catch (error) {
-        preview.replaceChildren();
+        formulaPreview.replaceChildren();
         setStatus("Error", "error");
         setMessage(`LaTeX error: ${error.message}`, "error");
         return false;
@@ -704,16 +674,13 @@ d & -b \\
 
     function nextPngFilename() {
       let nextNumber = 1;
-
       try {
         const stored = Number.parseInt(localStorage.getItem(DOWNLOAD_COUNTER_KEY), 10);
         if (Number.isFinite(stored) && stored >= 1) {
           nextNumber = stored;
         }
         localStorage.setItem(DOWNLOAD_COUNTER_KEY, String(nextNumber + 1));
-      } catch (error) {
-        // localStorage fallback
-      }
+      } catch (error) {}
 
       return `${String(nextNumber).padStart(3, "0")}.png`;
     }
@@ -728,9 +695,7 @@ d & -b \\
     }
 
     async function downloadPng() {
-      if (!renderFormula()) {
-        return;
-      }
+      if (!renderFormula()) return;
 
       downloadButton.disabled = true;
       downloadButton.textContent = "Creating PNG…";
@@ -740,8 +705,8 @@ d & -b \\
         await document.fonts.ready;
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-        const fontEmbedCSS = await htmlToImage.getFontEmbedCSS(exportArea);
-        const pngDataUrl = await htmlToImage.toPng(exportArea, {
+        const fontEmbedCSS = await htmlToImage.getFontEmbedCSS(formulaExportArea);
+        const pngDataUrl = await htmlToImage.toPng(formulaExportArea, {
           pixelRatio: Number(scaleSelect.value),
           cacheBust: false,
           preferredFontFormat: "woff2",
@@ -750,7 +715,7 @@ d & -b \\
         });
 
         triggerDownload(pngDataUrl, nextPngFilename());
-        setMessage("PNG downloaded with the same KaTeX fonts as the preview.", "success");
+        setMessage("PNG downloaded successfully.", "success");
       } catch (error) {
         setMessage(`PNG download failed: ${error.message}`, "error");
       } finally {
@@ -770,7 +735,7 @@ d & -b \\
 
       if (window.imageLibraryLoadFailed || typeof window.htmlToImage === "undefined") {
         setStatus("Unavailable", "error");
-        setMessage("The PNG export library could not be loaded. Check your connection and refresh the page.", "error");
+        setMessage("The PNG export library could not be loaded. Check your connection.", "error");
         return;
       }
 
@@ -791,12 +756,11 @@ d & -b \\
     });
 
     sizeSelect.addEventListener("change", renderFormula);
-
     paddingSelect.addEventListener("change", () => {
       updateExportStyle();
       setMessage("Export padding updated.", "success");
     });
-
+    
     transparentInput.addEventListener("change", () => {
       updateExportStyle();
       setMessage(
