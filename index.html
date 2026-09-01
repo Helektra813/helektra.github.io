@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>LaTeX to PNG</title>
+
+  <!-- KaTeX 樣式 -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.css"
+  >
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #172033;
+      background: #f3f6fb;
+      font-family:
+        -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 24px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      padding: 24px;
+      background: white;
+      border: 1px solid #dbe3f0;
+      border-radius: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 300px;
+      padding: 16px;
+      resize: vertical;
+
+      border: 1px solid #bac7da;
+      border-radius: 10px;
+
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .inline-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    select,
+    button {
+      min-height: 42px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    select {
+      border: 1px solid #bac7da;
+      background: white;
+    }
+
+    button {
+      border: 0;
+      color: white;
+      background: #2563eb;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .preview-stage {
+      min-height: 420px;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+    }
+
+    #export-area {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-width: 280px;
+      min-height: 150px;
+      padding: 40px;
+
+      color: #172033;
+      background: white;
+      border: 2px solid #2563eb;
+      border-radius: 18px;
+    }
+
+    #export-area.transparent {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    #preview {
+      font-size: 1.25rem;
+    }
+
+    #error {
+      min-height: 24px;
+      margin-top: 12px;
+      color: #dc2626;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>LaTeX → PNG</h1>
+
+    <div class="layout">
+      <section class="panel">
+        <label for="latex-input">輸入 LaTeX</label>
+
+        <textarea id="latex-input" spellcheck="false">\begin{aligned}
+\int_{\frac14}^{\frac34}\frac{1}{2\sqrt{x}}\,dx
+&=\left[\sqrt{x}\right]_{\frac14}^{\frac34} \\[4pt]
+&=\sqrt{\frac34}-\sqrt{\frac14} \\[4pt]
+&=\frac{\sqrt3}{2}-\frac12 \\[4pt]
+&=\boxed{\frac{\sqrt3-1}{2}}.
+\end{aligned}</textarea>
+
+        <div class="controls">
+          <label class="inline-label">
+            解析度
+            <select id="scale">
+              <option value="2">2×</option>
+              <option value="3" selected>3×</option>
+              <option value="4">4×</option>
+            </select>
+          </label>
+
+          <label class="inline-label">
+            <input type="checkbox" id="transparent">
+            透明背景
+          </label>
+
+          <button id="download-button">
+            下載 PNG
+          </button>
+        </div>
+
+        <div id="error" aria-live="polite"></div>
+      </section>
+
+      <section class="panel preview-stage">
+        <div id="export-area">
+          <div id="preview"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- LaTeX 渲染器 -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.js"></script>
+
+  <!-- 將 HTML 節點轉成圖片 -->
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.3/dist/html-to-image.js"></script>
+
+  <script>
+    const latexInput = document.getElementById("latex-input");
+    const preview = document.getElementById("preview");
+    const exportArea = document.getElementById("export-area");
+    const errorBox = document.getElementById("error");
+
+    const scaleSelect = document.getElementById("scale");
+    const transparentInput =
+      document.getElementById("transparent");
+
+    const downloadButton =
+      document.getElementById("download-button");
+
+    function renderFormula() {
+      try {
+        katex.render(latexInput.value, preview, {
+          displayMode: true,
+          throwOnError: true,
+          trust: false,
+          strict: "warn"
+        });
+
+        errorBox.textContent = "";
+        return true;
+      } catch (error) {
+        preview.textContent = "";
+        errorBox.textContent = error.message;
+        return false;
+      }
+    }
+
+    latexInput.addEventListener("input", renderFormula);
+
+    transparentInput.addEventListener("change", () => {
+      exportArea.classList.toggle(
+        "transparent",
+        transparentInput.checked
+      );
+    });
+
+    downloadButton.addEventListener("click", async () => {
+      if (!renderFormula()) {
+        return;
+      }
+
+      downloadButton.disabled = true;
+      downloadButton.textContent = "產生中……";
+
+      try {
+        // 等待 KaTeX 字型載入完成
+        await document.fonts.ready;
+
+        const pngDataUrl = await htmlToImage.toPng(
+          exportArea,
+          {
+            pixelRatio: Number(scaleSelect.value),
+            cacheBust: true
+          }
+        );
+
+        const link = document.createElement("a");
+
+        link.download = "latex-formula.png";
+        link.href = pngDataUrl;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        errorBox.textContent =
+          "圖片產生失敗：" + error.message;
+      } finally {
+        downloadButton.disabled = false;
+        downloadButton.textContent = "下載 PNG";
+      }
+    });
+
+    renderFormula();
+  </script>
+</body>
+</html>
