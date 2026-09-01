@@ -518,4 +518,234 @@ d & -b \\
     function normalizeLatex(value) {
       let latex = value.trim();
 
-      const fenced = latex.match(/^```(?:latex|tex)?\s*([\s\S]*?)\s*
+      const fenced = latex.match(/^```(?:latex|tex)?\s*([\s\S]*?)\s*```$/i);
+      if (fenced) {
+        latex = fenced[1].trim();
+      }
+
+      const wrappers = [
+        /^\\\[([\s\S]*)\\\]$/,
+        /^\$\$([\s\S]*)\$\$$/,
+        /^\\\(([\s\S]*)\\\)$/,
+        /^\$([^$][\s\S]*?)\$$/
+      ];
+
+      for (const wrapper of wrappers) {
+        const match = latex.match(wrapper);
+        if (match) {
+          latex = match[1].trim();
+          break;
+        }
+      }
+
+      return latex;
+    }
+
+    function updateExportStyle() {
+      exportArea.style.padding = `${Number(paddingSelect.value)}px`;
+      exportArea.classList.toggle("transparent", transparentInput.checked);
+      preview.style.fontSize = `${Number(sizeSelect.value)}rem`;
+    }
+
+    function renderFormula() {
+      renderIsValid = false;
+      downloadButton.disabled = true;
+
+      const rawValue = latexInput.value;
+
+      if (!rawValue.trim()) {
+        preview.replaceChildren();
+        setStatus("Empty", "error");
+        setMessage("Enter content to begin.", "error");
+        return false;
+      }
+
+      if (!librariesReady || typeof window.katex === "undefined") {
+        setStatus("Loading");
+        setMessage("Loading KaTeX…");
+        return false;
+      }
+
+      updateExportStyle();
+
+      // 修正後的偵測邏輯：僅透過明確符號或中文字來判斷是否為混合文本模式
+      const hasDelimiters = /(\$\$|\\\[|\\\]|\\\(|\\\)|(^|[^\\])\$)/.test(rawValue);
+      const hasChinese = /[\u4e00-\u9fa5]/.test(rawValue);
+
+      const shouldUseTextMode = hasDelimiters || hasChinese;
+
+      try {
+        if (shouldUseTextMode) {
+          if (typeof renderMathInElement === "undefined") {
+            throw new Error("KaTeX auto-render extension is not loaded yet.");
+          }
+          
+          preview.className = "text-mode";
+          preview.textContent = rawValue;
+          
+          renderMathInElement(preview, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '\\[', right: '\\]', display: true},
+              {left: '\\begin{aligned}', right: '\\end{aligned}', display: true},
+              {left: '\\begin{align}', right: '\\end{align}', display: true},
+              {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+              {left: '\\begin{cases}', right: '\\end{cases}', display: true},
+              {left: '\\begin{matrix}', right: '\\end{matrix}', display: true},
+              {left: '\\begin{pmatrix}', right: '\\end{pmatrix}', display: true},
+              {left: '\\begin{bmatrix}', right: '\\end{bmatrix}', display: true},
+              {left: '\\begin{vmatrix}', right: '\\end{vmatrix}', display: true},
+              {left: '\\begin{Vmatrix}', right: '\\end{Vmatrix}', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false}
+            ],
+            throwOnError: false,
+            strict: "warn"
+          });
+        } else {
+          // 單一純 LaTeX 公式模式
+          preview.className = "";
+          const latex = normalizeLatex(rawValue);
+
+          if (/\\(?:documentclass|usepackage|begin\s*\{document\})/.test(latex)) {
+            preview.replaceChildren();
+            setStatus("Formula only", "error");
+            setMessage("Paste only the formula, not a complete LaTeX document.", "error");
+            return false;
+          }
+
+          katex.render(latex, preview, {
+            displayMode: true,
+            throwOnError: true,
+            trust: false,
+            strict: "warn",
+            output: "htmlAndMathml"
+          });
+        }
+
+        renderIsValid = true;
+        downloadButton.disabled = false;
+        setStatus("Ready", "ready");
+        setMessage("Rendered successfully.", "success");
+        return true;
+      } catch (error) {
+        preview.replaceChildren();
+        setStatus("Error", "error");
+        setMessage(`LaTeX error: ${error.message}`, "error");
+        return false;
+      }
+    }
+
+    function scheduleRender() {
+      window.clearTimeout(renderTimer);
+      renderTimer = window.setTimeout(renderFormula, 160);
+    }
+
+    function nextPngFilename() {
+      let nextNumber = 1;
+
+      try {
+        const stored = Number.parseInt(localStorage.getItem(DOWNLOAD_COUNTER_KEY), 10);
+        if (Number.isFinite(stored) && stored >= 1) {
+          nextNumber = stored;
+        }
+        localStorage.setItem(DOWNLOAD_COUNTER_KEY, String(nextNumber + 1));
+      } catch (error) {
+        // localStorage fallback
+      }
+
+      return `${String(nextNumber).padStart(3, "0")}.png`;
+    }
+
+    function triggerDownload(dataUrl, filename) {
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    async function downloadPng() {
+      if (!renderFormula()) {
+        return;
+      }
+
+      downloadButton.disabled = true;
+      downloadButton.textContent = "Creating PNG…";
+      setMessage("Embedding KaTeX fonts and creating the PNG…");
+
+      try {
+        await document.fonts.ready;
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+        const fontEmbedCSS = await htmlToImage.getFontEmbedCSS(exportArea);
+        const pngDataUrl = await htmlToImage.toPng(exportArea, {
+          pixelRatio: Number(scaleSelect.value),
+          cacheBust: false,
+          preferredFontFormat: "woff2",
+          fontEmbedCSS,
+          backgroundColor: transparentInput.checked ? undefined : "#ffffff"
+        });
+
+        triggerDownload(pngDataUrl, nextPngFilename());
+        setMessage("PNG downloaded with the same KaTeX fonts as the preview.", "success");
+      } catch (error) {
+        setMessage(`PNG download failed: ${error.message}`, "error");
+      } finally {
+        downloadButton.textContent = "Download PNG";
+        downloadButton.disabled = !renderIsValid;
+      }
+    }
+
+    function initialize() {
+      updateExportStyle();
+
+      if (window.katexLoadFailed || typeof window.katex === "undefined") {
+        setStatus("Unavailable", "error");
+        setMessage("KaTeX could not be loaded. Check your connection and refresh the page.", "error");
+        return;
+      }
+
+      if (window.imageLibraryLoadFailed || typeof window.htmlToImage === "undefined") {
+        setStatus("Unavailable", "error");
+        setMessage("The PNG export library could not be loaded. Check your connection and refresh the page.", "error");
+        return;
+      }
+
+      librariesReady = true;
+      renderFormula();
+    }
+
+    latexInput.addEventListener("input", () => {
+      exampleSelect.value = "";
+      scheduleRender();
+    });
+
+    exampleSelect.addEventListener("change", () => {
+      if (examples[exampleSelect.value]) {
+        latexInput.value = examples[exampleSelect.value];
+        renderFormula();
+      }
+    });
+
+    sizeSelect.addEventListener("change", renderFormula);
+
+    paddingSelect.addEventListener("change", () => {
+      updateExportStyle();
+      setMessage("Export padding updated.", "success");
+    });
+
+    transparentInput.addEventListener("change", () => {
+      updateExportStyle();
+      setMessage(
+        transparentInput.checked ? "Transparent background enabled." : "White background enabled.",
+        "success"
+      );
+    });
+
+    downloadButton.addEventListener("click", downloadPng);
+    window.addEventListener("DOMContentLoaded", initialize);
+  </script>
+</body>
+</html>
