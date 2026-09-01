@@ -20,7 +20,7 @@
     onerror="window.katexLoadFailed = true"
   ></script>
 
-  <!-- KaTeX Auto-render Extension (for Text + Formula mode) -->
+  <!-- KaTeX Auto-render Extension -->
   <script 
     defer 
     src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/contrib/auto-render.min.js" 
@@ -158,12 +158,6 @@
       border-radius: 8px;
       background: #ffffff;
       cursor: pointer;
-    }
-    
-    select:disabled {
-      background: #f1f5f9;
-      color: #94a3b8;
-      cursor: not-allowed;
     }
 
     #example {
@@ -318,7 +312,7 @@
       padding: 30px;
       border: 1px solid #e1e7f0;
       border-radius: 12px;
-      background-color: #f1f5f9; /* Clean light gray background */
+      background-color: #f1f5f9;
     }
 
     #export-area {
@@ -341,12 +335,10 @@
       max-width: 100%;
     }
     
-    /* Single Formula Mode */
     #preview:not(.text-mode) {
       white-space: nowrap;
     }
 
-    /* Text + Formula Mode */
     #preview.text-mode {
       white-space: pre-wrap;
       word-wrap: break-word;
@@ -417,7 +409,7 @@
 
           <select id="example" aria-label="Load a formula example">
             <option value="">Load an example…</option>
-            <option value="document">Text + Formulas</option>
+            <option value="mixed">Mixed text & formulas</option>
             <option value="spectral">Spectral theorem</option>
             <option value="integral">Integral</option>
             <option value="aligned">Aligned equations</option>
@@ -470,7 +462,7 @@
         <div id="message" aria-live="polite">Loading KaTeX…</div>
 
         <div class="support-box">
-          <strong>Smart Detection:</strong> Pure LaTeX is automatically rendered as large display math. To write text with inline equations, wrap your math in <code>$ $</code> or <code>$$ $$</code>.
+          <strong>Smart Auto-Render:</strong> Paste pure equations, multiple <code>\begin{...}</code> blocks, or text mixed with formulas.
         </div>
       </section>
 
@@ -495,15 +487,17 @@
     const DOWNLOAD_COUNTER_KEY = "latex-png-download-number";
 
     const examples = {
-      document: String.raw`Here is a mix of normal text and equations!
+      mixed: String.raw`你 \begin{aligned}
+\int_{\frac14}^{\frac34}\frac{1}{2\sqrt{x}}\,dx
+&= \left[\sqrt{x}\right]_{\frac14}^{\frac34} \\[4pt]
+&= \sqrt{\frac34}-\sqrt{\frac14} \\[4pt]
+&= \boxed{\frac{\sqrt3-1}{2}}.
+\end{aligned}
 
-The roots of a quadratic equation $ax^2 + bx + c = 0$ are given by the formula:
-
-$$ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
-
-You can freely mix text and display equations such as integrals:
-\[ \int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2} \]
-And keep writing your notes smoothly.`,
+\begin{aligned}
+\phi_j(x_i)-\phi_j(x_k) &= 0-0=0, \\[5pt]
+\phi_j(x_j)-\phi_j(x_k) &= 1-0=1.
+\end{aligned}`,
 
       spectral: String.raw`T = \int_{\sigma(T)} \lambda\, dE(\lambda).`,
 
@@ -615,32 +609,50 @@ d & -b \\
         return false;
       }
 
-      // 智慧偵測：如果內容包含 $$, \[, \], \(, \), 或未跳脫的 $，就視為「文章 + 公式」模式
-      const hasDelimiters = /(\$\$|\\\[|\\\]|\\\(|\\\)|(^|[^\\])\$)/.test(rawValue);
-
       updateExportStyle();
 
+      // 判斷邏輯：
+      // 1. 包含明確的數學分隔符號 ($$, $, \[, \])
+      // 2. 包含中文、全形字元
+      // 3. 出現超過一個 \begin{...} 區塊
+      const hasDelimiters = /(\$\$|\\\[|\\\]|\\\(|\\\)|(^|[^\\])\$)/.test(rawValue);
+      const hasChinese = /[\u4e00-\u9fa5]/.test(rawValue);
+      const beginMatches = rawValue.match(/\\begin\{[a-zA-Z*]+\}/g);
+      const hasMultipleEnvironments = beginMatches && beginMatches.length > 1;
+
+      const shouldUseTextMode = hasDelimiters || hasChinese || hasMultipleEnvironments;
+
       try {
-        if (hasDelimiters) {
+        if (shouldUseTextMode) {
           if (typeof renderMathInElement === "undefined") {
             throw new Error("KaTeX auto-render extension is not loaded yet.");
           }
           
           preview.className = "text-mode";
-          // 使用 textContent 避免 HTML 注入攻擊，同時保留純文字格式
           preview.textContent = rawValue;
           
+          // 自動支援 $$、\[、\(、$ 以及直接裸寫的 \begin{aligned}、\begin{matrix} 等
           renderMathInElement(preview, {
             delimiters: [
               {left: '$$', right: '$$', display: true},
               {left: '\\[', right: '\\]', display: true},
+              {left: '\\begin{aligned}', right: '\\end{aligned}', display: true},
+              {left: '\\begin{align}', right: '\\end{align}', display: true},
+              {left: '\\begin{align*}', right: '\\end{align*}', display: true},
+              {left: '\\begin{cases}', right: '\\end{cases}', display: true},
+              {left: '\\begin{matrix}', right: '\\end{matrix}', display: true},
+              {left: '\\begin{pmatrix}', right: '\\end{pmatrix}', display: true},
+              {left: '\\begin{bmatrix}', right: '\\end{bmatrix}', display: true},
+              {left: '\\begin{vmatrix}', right: '\\end{vmatrix}', display: true},
+              {left: '\\begin{Vmatrix}', right: '\\end{Vmatrix}', display: true},
               {left: '$', right: '$', display: false},
               {left: '\\(', right: '\\)', display: false}
             ],
-            throwOnError: true,
+            throwOnError: false, // 避免單一公式錯誤導致整個版面崩潰
             strict: "warn"
           });
         } else {
+          // 單一純 LaTeX 公式模式
           preview.className = "";
           const latex = normalizeLatex(rawValue);
 
@@ -651,7 +663,6 @@ d & -b \\
             return false;
           }
 
-          // 純公式自動設定為 Display Mode (排版置中、較大)
           katex.render(latex, preview, {
             displayMode: true,
             throwOnError: true,
@@ -664,7 +675,7 @@ d & -b \\
         renderIsValid = true;
         downloadButton.disabled = false;
         setStatus("Ready", "ready");
-        setMessage(hasDelimiters ? "Document rendered successfully." : "Formula rendered successfully.", "success");
+        setMessage("Rendered successfully.", "success");
         return true;
       } catch (error) {
         preview.replaceChildren();
@@ -689,7 +700,7 @@ d & -b \\
         }
         localStorage.setItem(DOWNLOAD_COUNTER_KEY, String(nextNumber + 1));
       } catch (error) {
-        // The download still works if localStorage is unavailable.
+        // localStorage fallback
       }
 
       return `${String(nextNumber).padStart(3, "0")}.png`;
