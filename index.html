@@ -12,7 +12,6 @@
     crossorigin="anonymous"
   >
 
-  <!-- KaTeX Core -->
   <script
     defer
     src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.js"
@@ -20,14 +19,12 @@
     onerror="window.katexLoadFailed = true"
   ></script>
 
-  <!-- KaTeX Auto-render Extension -->
   <script 
     defer 
     src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/contrib/auto-render.min.js" 
     crossorigin="anonymous"
   ></script>
 
-  <!-- HTML to Image -->
   <script
     defer
     src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"
@@ -37,19 +34,18 @@
   <style>
     :root {
       color-scheme: light;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
       --ink: #172033;
-      --muted: #64748b;
-      --border: #dbe3f0;
+      --muted: #66758c;
+      --line: #dbe3f0;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --surface: #ffffff;
       --page: #f3f6fb;
       --error: #dc2626;
       --success: #137a55;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -57,26 +53,24 @@
       padding: 40px 20px;
       color: var(--ink);
       background: var(--page);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     main {
-      width: min(1180px, 100%);
+      width: min(1120px, 100%);
       margin: 0 auto;
     }
 
-    h1, h2 {
-      margin-top: 0;
-    }
+    .page-header { margin-bottom: 24px; }
 
     h1 {
-      margin-bottom: 0;
-      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 2.8rem);
       letter-spacing: -0.035em;
     }
 
     .subtitle {
-      margin: 8px 0 24px;
+      margin: 9px 0 0;
       color: var(--muted);
       line-height: 1.6;
     }
@@ -85,93 +79,91 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 24px;
-      align-items: start;
+      align-items: stretch;
     }
 
     .panel {
       min-width: 0;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgb(15 23 42 / 5%);
-    }
-
-    .input-panel {
       padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: 0 12px 35px rgba(33, 52, 85, 0.06);
     }
 
-    .input-heading {
+    .input-heading,
+    .preview-heading {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 14px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
-    .input-heading h2 {
+    h2 {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: 1rem;
     }
 
     label {
       display: block;
-      margin-bottom: 6px;
       font-weight: 650;
-      color: #334155;
-      font-size: 0.86rem;
     }
 
-    textarea, select, button, input {
-      font: inherit;
-    }
+    textarea, select, button, input { font: inherit; }
 
     textarea {
       display: block;
       width: 100%;
-      min-height: 330px;
+      min-height: 300px;
       padding: 16px;
       resize: vertical;
-      color: var(--ink);
-      background: white;
+      color: #14213a;
       border: 1px solid #bac7da;
       border-radius: 10px;
       outline: none;
-      font-family: "SFMono-Regular", Consolas, monospace;
+      background: #fcfdff;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       font-size: 15px;
-      line-height: 1.65;
+      line-height: 1.6;
+      tab-size: 2;
     }
 
     textarea:focus, select:focus-visible, button:focus-visible, input:focus-visible {
       border-color: var(--accent);
-      outline: 3px solid rgb(37 99 235 / 18%);
-      outline-offset: 1px;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
     }
 
     select {
-      width: 100%;
       min-height: 42px;
-      padding: 8px 14px;
+      padding: 8px 34px 8px 11px;
       color: var(--ink);
-      background: white;
       border: 1px solid #bac7da;
       border-radius: 8px;
+      background: #ffffff;
       cursor: pointer;
-      font-size: 15px;
     }
 
     #example {
       width: auto;
       min-width: 150px;
-      min-height: 36px;
-      padding: 6px 12px;
     }
 
     .controls {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 20px;
+      gap: 14px;
+      margin-top: 18px;
     }
+
+    .control-label {
+      margin-bottom: 6px;
+      color: #40506a;
+      font-size: 0.78rem;
+    }
+
+    .controls select { width: 100%; }
 
     .checkbox-control {
       display: flex;
@@ -187,9 +179,8 @@
       align-items: center;
       gap: 8px;
       width: 100%;
-      margin: 0;
       font-size: 0.9rem;
-      font-weight: 500;
+      font-weight: 400;
       cursor: pointer;
     }
 
@@ -200,83 +191,66 @@
       accent-color: var(--accent);
     }
 
-    .primary-button {
+    button {
       width: 100%;
       min-height: 46px;
-      margin-top: 16px;
+      margin-top: 18px;
       padding: 10px 16px;
       border: 0;
       border-radius: 9px;
-      color: white;
+      color: #ffffff;
       background: var(--accent);
       cursor: pointer;
-      font-weight: 650;
-      transition: background 120ms ease;
+      font-weight: 700;
+      transition: background 120ms ease, transform 120ms ease;
     }
 
-    .primary-button:hover:not(:disabled) {
-      background: var(--accent-hover);
+    button:hover:not(:disabled) {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
     }
 
-    .primary-button:disabled {
-      opacity: 0.6;
+    button:disabled {
+      opacity: 0.58;
       cursor: wait;
     }
 
-    .message-box {
+    #message {
       min-height: 24px;
       margin-top: 12px;
       color: var(--muted);
       font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       line-height: 1.5;
       white-space: pre-wrap;
     }
 
-    .message-box.error { color: var(--error); }
-    .message-box.success { color: var(--success); }
+    #message.error { color: var(--error); }
+    #message.success { color: var(--success); }
 
     .support-box {
-      margin-top: 12px;
+      margin-top: 8px;
       padding: 12px 14px;
       border-radius: 9px;
       color: #53627a;
       background: #f5f8fd;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       line-height: 1.55;
     }
 
     .support-box strong { color: #32435e; }
     code {
-      padding: 0.1em 0.35em;
-      background: #eff6ff;
+      padding: 0.08em 0.32em;
       border-radius: 4px;
-      color: #1d4ed8;
+      color: #244c9b;
+      background: #eaf0fb;
       font-family: "SFMono-Regular", Consolas, monospace;
     }
 
-    /* PREVIEW STAGE STYLES */
-    .preview-stage {
+    .preview-panel {
       display: flex;
+      min-height: 570px;
       flex-direction: column;
-      padding: 0;
-      overflow: hidden;
-      min-height: 600px;
-    }
-
-    .preview-header {
-      position: sticky;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 22px;
-      background: white;
-      border-bottom: 1px solid var(--border);
-      font-weight: 650;
-      font-size: 1.1rem;
     }
 
     #status {
@@ -284,92 +258,84 @@
       align-items: center;
       gap: 7px;
       color: var(--muted);
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.78rem;
+      font-weight: 650;
     }
 
     #status::before {
-      width: 7px; height: 7px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #94a3b8;
       content: "";
     }
+
     #status.ready::before { background: #16a36a; }
     #status.error::before { background: #dc2626; }
 
-    .preview-scroller {
+    .preview-stage {
       display: grid;
-      place-items: center;
+      min-width: 0;
       flex: 1;
+      place-items: center;
       overflow: auto;
-      padding: 40px;
-      background-color: var(--page);
+      padding: 30px;
+      border: 1px solid #e1e7f0;
+      border-radius: 12px;
+      background-color: #f1f5f9;
     }
 
-    #formula-export-area {
-      color: var(--ink);
-      background: white;
-      border: 2px solid var(--accent);
-      border-radius: 18px;
-      padding: 40px;
-      transition: border-color 150ms ease, background 150ms ease;
-    }
-
-    #formula-export-area.transparent {
-      background: transparent;
-      border-color: transparent;
-    }
-
-    /* Auto layout width based on content type */
-    #formula-export-area.is-formula {
+    #export-area {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: max-content;
-      min-width: 250px;
-    }
-
-    #formula-export-area.is-mixed {
-      display: block;
-      width: 680px;
+      color: var(--ink);
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgba(30, 47, 77, 0.16);
       max-width: 100%;
     }
 
-    #formula-preview {
-      color: inherit;
-      font-family: Georgia, "Times New Roman", "Cambria Math", serif;
-      line-height: 1.7;
+    #export-area.transparent {
+      background: transparent;
+      box-shadow: none;
     }
 
-    #formula-export-area.is-formula #formula-preview {
-      width: max-content;
-      white-space: nowrap;
+    #preview {
+      display: inline-block;
+      max-width: 100%;
     }
+    
+    #preview:not(.text-mode) { white-space: nowrap; }
 
-    #formula-export-area.is-mixed #formula-preview {
-      width: 100%;
+    #preview.text-mode {
       white-space: pre-wrap;
       word-wrap: break-word;
+      line-height: 1.6;
       text-align: left;
     }
 
-    #formula-preview .katex-display {
-      margin: 1em 0;
-    }
+    #preview .katex-display { margin: 1em 0; }
 
     .placeholder {
       color: var(--muted);
-      font-size: 0.95rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.9rem;
     }
 
-    @media (max-width: 860px) {
-      .layout {
-        grid-template-columns: 1fr;
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      .preview-panel { min-height: 430px; }
+    }
+
+    @media (max-width: 520px) {
+      body { padding: 24px 12px; }
+      .panel { padding: 18px; }
+      .input-heading {
+        align-items: stretch;
+        flex-direction: column;
       }
-      .preview-stage {
-        min-height: 480px;
-      }
+      #example, .controls { width: 100%; }
+      .controls { grid-template-columns: 1fr; }
+      .preview-stage { padding: 20px; }
     }
   </style>
 </head>
@@ -382,7 +348,7 @@
     </header>
 
     <div class="layout">
-      <section class="panel input-panel" aria-labelledby="input-title">
+      <section class="panel" aria-labelledby="input-title">
         <div class="input-heading">
           <h2 id="input-title">Input</h2>
 
@@ -391,16 +357,27 @@
             <option value="mixed">Mixed text & formulas</option>
             <option value="spectral">Spectral theorem</option>
             <option value="integral">Integral</option>
+            <option value="aligned">Aligned equations</option>
             <option value="cases">Cases</option>
             <option value="matrix">Matrix</option>
           </select>
         </div>
 
-        <textarea id="latex-input" spellcheck="false" aria-label="LaTeX formula">T = \int_{\sigma(T)} \lambda\, dE(\lambda).</textarea>
+        <textarea id="latex-input" spellcheck="false" aria-label="LaTeX formula">A=
+\begin{pmatrix}
+a & b \\
+c & d
+\end{pmatrix},
+\qquad
+A^{-1}=\frac{1}{ad-bc}
+\begin{pmatrix}
+d & -b \\
+-c & a
+\end{pmatrix}</textarea>
 
         <div class="controls">
           <div>
-            <label for="formula-size">Output size</label>
+            <label class="control-label" for="formula-size">Output size</label>
             <select id="formula-size">
               <option value="1">Small</option>
               <option value="1.25" selected>Medium</option>
@@ -410,7 +387,7 @@
           </div>
 
           <div>
-            <label for="padding">Export padding</label>
+            <label class="control-label" for="padding">Export padding</label>
             <select id="padding">
               <option value="20">20 px</option>
               <option value="40" selected>40 px</option>
@@ -420,7 +397,7 @@
           </div>
 
           <div>
-            <label for="scale">PNG resolution</label>
+            <label class="control-label" for="scale">PNG resolution</label>
             <select id="scale">
               <option value="2">2×</option>
               <option value="3" selected>3×</option>
@@ -431,28 +408,28 @@
           <div class="checkbox-control">
             <label for="transparent">
               <input id="transparent" type="checkbox">
-              Transparent bg
+              Transparent background
             </label>
           </div>
         </div>
 
-        <button id="download-button" class="primary-button" type="button" disabled>Download PNG</button>
-        <div id="message" class="message-box" aria-live="polite">Loading KaTeX…</div>
+        <button id="download-button" type="button" disabled>Download PNG</button>
+        <div id="message" aria-live="polite">Loading KaTeX…</div>
 
         <div class="support-box">
-          <strong>Smart Auto-Render:</strong> Paste pure equations, multiple <code>\begin{...}</code> blocks, or text mixed with <code>$$...$$</code> formulas.
+          <strong>Smart Auto-Render:</strong> Paste pure equations, multiple <code>\begin{...}</code> blocks, or text mixed with formulas.
         </div>
       </section>
 
-      <section class="panel preview-stage" aria-labelledby="preview-title">
-        <div class="preview-header">
-          <span id="preview-title">Formula Preview</span>
+      <section class="panel preview-panel" aria-labelledby="preview-title">
+        <div class="preview-heading">
+          <h2 id="preview-title">Preview</h2>
           <span id="status">Loading</span>
         </div>
 
-        <div class="preview-scroller">
-          <div id="formula-export-area" class="is-formula">
-            <div id="formula-preview">
+        <div class="preview-stage">
+          <div id="export-area">
+            <div id="preview">
               <span class="placeholder">Preparing KaTeX…</span>
             </div>
           </div>
@@ -498,6 +475,11 @@ This equals
 &= \boxed{\frac{\sqrt3-1}{2}}.
 \end{aligned}`,
 
+      aligned: String.raw`\begin{aligned}
+\phi_j(x_i)-\phi_j(x_k) &= 0-0=0, \\[5pt]
+\phi_j(x_j)-\phi_j(x_k) &= 1-0=1.
+\end{aligned}`,
+
       cases: String.raw`f(x)=
 \begin{cases}
 x^2, & x\ge 0, \\
@@ -523,9 +505,8 @@ d & -b \\
     const paddingSelect = document.getElementById("padding");
     const scaleSelect = document.getElementById("scale");
     const transparentInput = document.getElementById("transparent");
-    
-    const formulaPreview = document.getElementById("formula-preview");
-    const formulaExportArea = document.getElementById("formula-export-area");
+    const preview = document.getElementById("preview");
+    const exportArea = document.getElementById("export-area");
     const downloadButton = document.getElementById("download-button");
     const message = document.getElementById("message");
     const status = document.getElementById("status");
@@ -536,7 +517,7 @@ d & -b \\
 
     function setMessage(text, type = "") {
       message.textContent = text;
-      message.className = `message-box ${type}`;
+      message.className = type;
     }
 
     function setStatus(text, type = "") {
@@ -566,13 +547,14 @@ d & -b \\
           break;
         }
       }
+
       return latex;
     }
 
     function updateExportStyle() {
-      formulaExportArea.style.padding = `${Number(paddingSelect.value)}px`;
-      formulaExportArea.classList.toggle("transparent", transparentInput.checked);
-      formulaPreview.style.fontSize = `${Number(sizeSelect.value)}rem`;
+      exportArea.style.padding = `${Number(paddingSelect.value)}px`;
+      exportArea.classList.toggle("transparent", transparentInput.checked);
+      preview.style.fontSize = `${Number(sizeSelect.value)}rem`;
     }
 
     function renderFormula() {
@@ -582,7 +564,7 @@ d & -b \\
       const rawValue = latexInput.value;
 
       if (!rawValue.trim()) {
-        formulaPreview.replaceChildren();
+        preview.replaceChildren();
         setStatus("Empty", "error");
         setMessage("Enter content to begin.", "error");
         return false;
@@ -596,17 +578,11 @@ d & -b \\
 
       updateExportStyle();
 
-      // Smart Detection Logic
+      // 修正後的偵測邏輯：僅透過明確符號或中文字來判斷是否為混合文本模式
       const hasDelimiters = /(\$\$|\\\[|\\\]|\\\(|\\\)|(^|[^\\])\$)/.test(rawValue);
       const hasChinese = /[\u4e00-\u9fa5]/.test(rawValue);
-      const beginMatches = rawValue.match(/\\begin\{[a-zA-Z*]+\}/g);
-      const hasMultipleEnvironments = beginMatches && beginMatches.length > 1;
 
-      const shouldUseTextMode = hasDelimiters || hasChinese || hasMultipleEnvironments;
-
-      // Adjust box width dynamically based on content type
-      formulaExportArea.classList.toggle("is-mixed", shouldUseTextMode);
-      formulaExportArea.classList.toggle("is-formula", !shouldUseTextMode);
+      const shouldUseTextMode = hasDelimiters || hasChinese;
 
       try {
         if (shouldUseTextMode) {
@@ -614,9 +590,10 @@ d & -b \\
             throw new Error("KaTeX auto-render extension is not loaded yet.");
           }
           
-          formulaPreview.textContent = rawValue;
+          preview.className = "text-mode";
+          preview.textContent = rawValue;
           
-          renderMathInElement(formulaPreview, {
+          renderMathInElement(preview, {
             delimiters: [
               {left: '$$', right: '$$', display: true},
               {left: '\\[', right: '\\]', display: true},
@@ -636,16 +613,18 @@ d & -b \\
             strict: "warn"
           });
         } else {
+          // 單一純 LaTeX 公式模式
+          preview.className = "";
           const latex = normalizeLatex(rawValue);
 
           if (/\\(?:documentclass|usepackage|begin\s*\{document\})/.test(latex)) {
-            formulaPreview.replaceChildren();
+            preview.replaceChildren();
             setStatus("Formula only", "error");
             setMessage("Paste only the formula, not a complete LaTeX document.", "error");
             return false;
           }
 
-          katex.render(latex, formulaPreview, {
+          katex.render(latex, preview, {
             displayMode: true,
             throwOnError: true,
             trust: false,
@@ -660,7 +639,7 @@ d & -b \\
         setMessage("Rendered successfully.", "success");
         return true;
       } catch (error) {
-        formulaPreview.replaceChildren();
+        preview.replaceChildren();
         setStatus("Error", "error");
         setMessage(`LaTeX error: ${error.message}`, "error");
         return false;
@@ -674,13 +653,16 @@ d & -b \\
 
     function nextPngFilename() {
       let nextNumber = 1;
+
       try {
         const stored = Number.parseInt(localStorage.getItem(DOWNLOAD_COUNTER_KEY), 10);
         if (Number.isFinite(stored) && stored >= 1) {
           nextNumber = stored;
         }
         localStorage.setItem(DOWNLOAD_COUNTER_KEY, String(nextNumber + 1));
-      } catch (error) {}
+      } catch (error) {
+        // localStorage fallback
+      }
 
       return `${String(nextNumber).padStart(3, "0")}.png`;
     }
@@ -695,7 +677,9 @@ d & -b \\
     }
 
     async function downloadPng() {
-      if (!renderFormula()) return;
+      if (!renderFormula()) {
+        return;
+      }
 
       downloadButton.disabled = true;
       downloadButton.textContent = "Creating PNG…";
@@ -705,8 +689,8 @@ d & -b \\
         await document.fonts.ready;
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-        const fontEmbedCSS = await htmlToImage.getFontEmbedCSS(formulaExportArea);
-        const pngDataUrl = await htmlToImage.toPng(formulaExportArea, {
+        const fontEmbedCSS = await htmlToImage.getFontEmbedCSS(exportArea);
+        const pngDataUrl = await htmlToImage.toPng(exportArea, {
           pixelRatio: Number(scaleSelect.value),
           cacheBust: false,
           preferredFontFormat: "woff2",
@@ -715,7 +699,7 @@ d & -b \\
         });
 
         triggerDownload(pngDataUrl, nextPngFilename());
-        setMessage("PNG downloaded successfully.", "success");
+        setMessage("PNG downloaded with the same KaTeX fonts as the preview.", "success");
       } catch (error) {
         setMessage(`PNG download failed: ${error.message}`, "error");
       } finally {
@@ -735,7 +719,7 @@ d & -b \\
 
       if (window.imageLibraryLoadFailed || typeof window.htmlToImage === "undefined") {
         setStatus("Unavailable", "error");
-        setMessage("The PNG export library could not be loaded. Check your connection.", "error");
+        setMessage("The PNG export library could not be loaded. Check your connection and refresh the page.", "error");
         return;
       }
 
@@ -756,11 +740,12 @@ d & -b \\
     });
 
     sizeSelect.addEventListener("change", renderFormula);
+
     paddingSelect.addEventListener("change", () => {
       updateExportStyle();
       setMessage("Export padding updated.", "success");
     });
-    
+
     transparentInput.addEventListener("change", () => {
       updateExportStyle();
       setMessage(
