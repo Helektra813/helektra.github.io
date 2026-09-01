@@ -7,7 +7,7 @@
   <title>Math Image Studio</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.css">
-  <link rel="stylesheet" href="https://tikzjax.com/v1/fonts.css">
+  <link rel="stylesheet" href="https://bill-ion.github.io/tikzjax-live/dist/fonts.css">
 
   <style>
     :root {
@@ -265,13 +265,6 @@
     #tikz-preview { display: grid; place-items: center; }
     #tikz-preview svg { display: block; max-width: 760px; height: auto; }
 
-    .placeholder {
-      max-width: 300px;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.6;
-    }
-
     .compiler-frame {
       position: fixed;
       left: -10000px;
@@ -379,7 +372,7 @@
   \foreach \y in {-2,-1,1,2}
     \draw (0.08,\y) -- (-0.08,\y) node[left] {\small $\y$};
 
-  % Convex set C
+  % First convex set C
   \fill[blue!16]
     (-3.3,-1.2) .. controls (-3.8,0.1) and (-2.9,1.8) ..
     (-1.5,1.6) .. controls (-0.7,1.3) and (-0.8,-0.6) ..
@@ -390,14 +383,24 @@
     (-1.8,-1.5) .. controls (-2.4,-1.8) and (-3.0,-1.7) .. cycle;
   \node[blue] at (-2.3,0.2) {$C$};
 
-  % Separating hyperplane and exterior point
-  \draw[red,very thick] (0.65,-2.5) -- (0.65,2.6);
-  \node[red,right] at (0.65,2.25) {$f(x)=\alpha$};
-  \fill (2.6,0.9) circle (2.3pt);
-  \node[above right] at (2.6,0.9) {$x_0$};
+  % Second convex set D
+  \fill[green!16]
+    (1.1,-1.3) .. controls (0.7,-0.4) and (1.0,1.3) ..
+    (2.3,1.7) .. controls (3.2,1.9) and (3.7,0.8) ..
+    (3.3,-0.8) .. controls (2.9,-1.6) and (1.7,-1.8) .. cycle;
+  \draw[green!50!black,very thick]
+    (1.1,-1.3) .. controls (0.7,-0.4) and (1.0,1.3) ..
+    (2.3,1.7) .. controls (3.2,1.9) and (3.7,0.8) ..
+    (3.3,-0.8) .. controls (2.9,-1.6) and (1.7,-1.8) .. cycle;
+  \node[green!50!black] at (2.3,0.2) {$D$};
 
-  \node[blue] at (-2.35,-2.2) {$f(x)\leq\alpha\quad(x\in C)$};
-  \node at (2.35,-1.8) {$f(x_0)>\alpha$};
+  % Strictly separating hyperplane
+  \draw[red,very thick] (0.35,-2.5) -- (0.35,2.6);
+  \node[red,right] at (0.35,2.25) {$f(z)=\gamma$};
+
+  \node[blue] at (-2.3,-2.2) {$f(x)\leq\alpha\quad(x\in C)$};
+  \node[green!50!black] at (2.3,-2.2) {$\beta\leq f(y)\quad(y\in D)$};
+  \node[red] at (0.35,-2.65) {$\alpha<\gamma<\beta$};
 \end{tikzpicture}</textarea>
 
         <p class="hint">
@@ -415,7 +418,7 @@
             </select>
           </div>
           <label class="check-label"><input type="checkbox" id="tikz-transparent"> Transparent</label>
-          <button class="action-button primary" id="tikz-render" type="button">Render Diagram</button>
+          <button class="action-button primary" id="tikz-render" type="button">Compile TikZ</button>
           <button class="action-button" id="tikz-download-png" type="button" disabled>Download PNG</button>
           <button class="action-button" id="tikz-download-svg" type="button" disabled>Download SVG</button>
         </div>
@@ -426,12 +429,74 @@
       <div class="panel preview-panel">
         <div class="preview-header">
           <span>Preview</span>
-          <span class="file-note">First render may take a few seconds</span>
+          <span class="file-note">Built-in preview ready</span>
         </div>
         <div class="preview-scroller">
           <div class="export-area" id="tikz-export">
             <div id="tikz-preview">
-              <p class="placeholder">Select Render Diagram to compile the default Hahn–Banach separation figure.</p>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="720"
+                height="500"
+                viewBox="0 0 720 500"
+                role="img"
+                aria-label="Two disjoint convex sets separated by a hyperplane"
+              >
+                <defs>
+                  <marker id="axis-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                    <path d="M0,0 L8,4 L0,8 Z" fill="#172033"></path>
+                  </marker>
+                </defs>
+
+                <g fill="none" stroke="#172033" stroke-width="2">
+                  <path d="M45 250 H680" marker-end="url(#axis-arrow)"></path>
+                  <path d="M360 455 V42" marker-end="url(#axis-arrow)"></path>
+                </g>
+
+                <g fill="#172033" font-family="Georgia, Times New Roman, serif" font-size="18" text-anchor="middle">
+                  <g stroke="#172033" stroke-width="1.5">
+                    <path d="M80 244 V256 M150 244 V256 M220 244 V256 M290 244 V256 M430 244 V256 M500 244 V256 M570 244 V256 M640 244 V256"></path>
+                    <path d="M354 390 H366 M354 320 H366 M354 180 H366 M354 110 H366"></path>
+                  </g>
+                  <text x="80" y="278">−4</text>
+                  <text x="150" y="278">−3</text>
+                  <text x="220" y="278">−2</text>
+                  <text x="290" y="278">−1</text>
+                  <text x="430" y="278">1</text>
+                  <text x="500" y="278">2</text>
+                  <text x="570" y="278">3</text>
+                  <text x="640" y="278">4</text>
+                  <text x="338" y="396">−2</text>
+                  <text x="338" y="326">−1</text>
+                  <text x="338" y="186">1</text>
+                  <text x="338" y="116">2</text>
+                </g>
+
+                <path
+                  d="M88 330 C42 245 72 130 175 108 C258 90 310 142 292 226 C278 296 238 374 148 382 C118 385 99 366 88 330 Z"
+                  fill="#dce5ff"
+                  stroke="#2457d6"
+                  stroke-width="4"
+                ></path>
+                <text x="174" y="238" fill="#2457d6" font-family="Georgia, Times New Roman, serif" font-size="30" font-style="italic">C</text>
+
+                <path
+                  d="M468 345 C438 292 445 190 502 136 C558 82 642 105 663 183 C682 255 650 352 574 382 C528 400 490 382 468 345 Z"
+                  fill="#dcf4e9"
+                  stroke="#16805a"
+                  stroke-width="4"
+                ></path>
+                <text x="554" y="240" fill="#16805a" font-family="Georgia, Times New Roman, serif" font-size="30" font-style="italic">D</text>
+
+                <path d="M400 70 V430" stroke="#d32929" stroke-width="4"></path>
+                <text x="416" y="96" fill="#d32929" font-family="Georgia, Times New Roman, serif" font-size="22" font-style="italic">f(z) = γ</text>
+
+                <text x="62" y="432" fill="#2457d6" font-family="Georgia, Times New Roman, serif" font-size="20" font-style="italic">f(x) ≤ α   (x ∈ C)</text>
+                <text x="474" y="432" fill="#16805a" font-family="Georgia, Times New Roman, serif" font-size="20" font-style="italic">β ≤ f(y)   (y ∈ D)</text>
+                <text x="350" y="474" fill="#d32929" font-family="Georgia, Times New Roman, serif" font-size="21" font-style="italic">α &lt; γ &lt; β</text>
+                <text x="688" y="244" fill="#172033" font-family="Georgia, Times New Roman, serif" font-size="23" font-style="italic">x₁</text>
+                <text x="375" y="48" fill="#172033" font-family="Georgia, Times New Roman, serif" font-size="23" font-style="italic">x₂</text>
+              </svg>
             </div>
           </div>
         </div>
@@ -601,7 +666,10 @@
     const tikzPreview = $("tikz-preview");
     const tikzExport = $("tikz-export");
     let activeCompiler = null;
-    let compiledSvg = null;
+    let compiledSvg = tikzPreview.querySelector("svg");
+
+    tikzDownloadPng.disabled = !compiledSvg;
+    tikzDownloadSvg.disabled = !compiledSvg;
 
     function setTikzMessage(text, type = "") {
       tikzMessage.textContent = text;
@@ -612,7 +680,7 @@
       compiledSvg = null;
       tikzDownloadPng.disabled = true;
       tikzDownloadSvg.disabled = true;
-      setTikzMessage("Diagram changed. Select Render Diagram to update.");
+      setTikzMessage("Diagram changed. Select Compile TikZ to update.");
     }
 
     tikzInput.addEventListener("input", invalidateTikzPreview);
@@ -628,15 +696,17 @@
         frame.className = "compiler-frame";
         frame.setAttribute("aria-hidden", "true");
 
-        let observer = null;
         let settled = false;
+        let poll = null;
         const timeout = window.setTimeout(() => {
-          finish(new Error("TikZ compilation timed out. Check the code and your connection."));
-        }, 45000);
+          finish(new Error(
+            "The remote TikZ engine did not finish. The built-in sample is still available; check the TikZ code or try again on a faster connection."
+          ));
+        }, 90000);
 
         function cleanup() {
           window.clearTimeout(timeout);
-          if (observer) observer.disconnect();
+          if (poll) window.clearInterval(poll);
           frame.remove();
           if (activeCompiler && activeCompiler.frame === frame) activeCompiler = null;
         }
@@ -653,39 +723,61 @@
           cancel() { finish(new Error("Compilation replaced by a newer request.")); }
         };
 
-        frame.addEventListener("load", () => {
+        const hasDocument = /\\begin\s*\{document\}/.test(source);
+        const bodyStart = source.search(
+          /\\begin\s*\{(?:tikzpicture|tikzcd)\}/
+        );
+        let normalizedSource = source;
+
+        if (!hasDocument && bodyStart > 0) {
+          normalizedSource =
+            source.slice(0, bodyStart) +
+            "\\begin{document}\n" +
+            source.slice(bodyStart) +
+            "\n\\end{document}";
+        } else if (!hasDocument) {
+          normalizedSource =
+            "\\begin{document}\n" + source + "\n\\end{document}";
+        }
+        const closingScriptTag = "<" + "/script>";
+        const safeSource = normalizedSource.split(closingScriptTag).join("");
+
+        function checkCompilerDocument() {
           try {
             const doc = frame.contentDocument;
-            const sourceScript = doc.createElement("script");
-            sourceScript.type = "text/tikz";
-            sourceScript.textContent = source;
-            doc.body.appendChild(sourceScript);
+            if (!doc) return;
 
-            observer = new MutationObserver(() => {
-              const svg = doc.querySelector("svg");
-              if (svg) finish(null, svg.cloneNode(true));
-            });
-            observer.observe(doc.body, { childList: true, subtree: true });
-
-            const engineScript = doc.createElement("script");
-            engineScript.src = "https://tikzjax.com/v1/tikzjax.js";
-            engineScript.onerror = () => {
+            if (doc.documentElement.dataset.engineError === "true") {
               finish(new Error("TikZJax failed to load. Check your internet connection."));
-            };
-            doc.body.appendChild(engineScript);
+              return;
+            }
+
+            const svg = doc.querySelector("svg");
+            if (svg) finish(null, svg.cloneNode(true));
           } catch (error) {
             finish(error);
           }
-        }, { once: true });
+        }
+
+        frame.addEventListener("load", checkCompilerDocument);
 
         frame.srcdoc = [
           "<!DOCTYPE html>",
           "<html><head><meta charset=\"UTF-8\">",
-          "<link rel=\"stylesheet\" href=\"https://tikzjax.com/v1/fonts.css\">",
+          "<link rel=\"stylesheet\" href=\"https://bill-ion.github.io/tikzjax-live/dist/fonts.css\">",
           "<style>body{margin:0;padding:20px;background:white}</style>",
-          "</head><body></body></html>"
+          "<script>window.addEventListener('error',function(){document.documentElement.dataset.engineError='true'},true);",
+          closingScriptTag,
+          "</head><body>",
+          "<script type=\"text/tikz\">",
+          safeSource,
+          closingScriptTag,
+          "<script src=\"https://bill-ion.github.io/tikzjax-live/dist/tikzjax.js\">",
+          closingScriptTag,
+          "</body></html>"
         ].join("");
         document.body.appendChild(frame);
+        poll = window.setInterval(checkCompilerDocument, 250);
       });
     }
 
@@ -697,10 +789,10 @@
       }
 
       tikzRender.disabled = true;
-      tikzRender.textContent = "Rendering…";
+      tikzRender.textContent = "Compiling…";
       tikzDownloadPng.disabled = true;
       tikzDownloadSvg.disabled = true;
-      setTikzMessage("Compiling TikZ in your browser…");
+      setTikzMessage("Loading the browser TeX engine. The first compilation can take up to 90 seconds…");
 
       try {
         const svg = await compileTikz(source);
@@ -716,7 +808,9 @@
         if (error.message !== "Compilation replaced by a newer request.") setTikzMessage(error.message, "error");
       } finally {
         tikzRender.disabled = false;
-        tikzRender.textContent = "Render Diagram";
+        tikzRender.textContent = "Compile TikZ";
+        tikzDownloadPng.disabled = !compiledSvg;
+        tikzDownloadSvg.disabled = !compiledSvg;
       }
     });
 
@@ -758,6 +852,7 @@
       setTikzMessage("SVG downloaded.", "success");
     });
 
+    setTikzMessage("Two-set Hahn–Banach diagram ready. Compile TikZ only after editing the source.", "success");
     renderFormula();
   </script>
 </body>
