@@ -318,7 +318,7 @@
       padding: 30px;
       border: 1px solid #e1e7f0;
       border-radius: 12px;
-      background-color: #f1f5f9; /* Removed checkerboard pattern, set to simple light gray */
+      background-color: #f1f5f9; /* Clean light gray background, no grid */
     }
 
     #export-area {
@@ -407,7 +407,7 @@
   <main>
     <header class="page-header">
       <h1>LaTeX → PNG</h1>
-      <p class="subtitle">Write formulas or text mixed with equations, preview with KaTeX, and download a high-resolution PNG.</p>
+      <p class="subtitle">Write pure formulas or text mixed with equations, auto-preview with KaTeX, and download.</p>
     </header>
 
     <div class="layout">
@@ -430,15 +430,7 @@
 
         <div class="controls">
           <div>
-            <label class="control-label" for="render-mode">Input Mode</label>
-            <select id="render-mode">
-              <option value="single" selected>Single Formula</option>
-              <option value="text">Text + Formulas (Document)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="control-label" for="math-style">Math style (Single Mode)</label>
+            <label class="control-label" for="math-style">Math style (Pure formula only)</label>
             <select id="math-style">
               <option value="display" selected>Display</option>
               <option value="inline">Inline</option>
@@ -446,7 +438,7 @@
           </div>
 
           <div>
-            <label class="control-label" for="formula-size">Text / Formula size</label>
+            <label class="control-label" for="formula-size">Output size</label>
             <select id="formula-size">
               <option value="1">Small</option>
               <option value="1.25" selected>Medium</option>
@@ -486,7 +478,7 @@
         <div id="message" aria-live="polite">Loading KaTeX…</div>
 
         <div class="support-box">
-          <strong>Usage:</strong> In <strong>Single Formula</strong> mode, paste pure LaTeX without <code>$</code>. In <strong>Text + Formulas</strong> mode, you can write English/Chinese text and wrap math inside <code>$inline$</code> or <code>$$display$$</code> blocks.
+          <strong>Smart Detection:</strong> Simply paste pure LaTeX, or type normal text and wrap your equations in <code>$inline$</code> or <code>$$display$$</code> blocks. The app will automatically detect and render it perfectly.
         </div>
       </section>
 
@@ -556,7 +548,6 @@ d & -b \\
 
     const latexInput = document.getElementById("latex-input");
     const exampleSelect = document.getElementById("example");
-    const modeSelect = document.getElementById("render-mode");
     const styleSelect = document.getElementById("math-style");
     const sizeSelect = document.getElementById("formula-size");
     const paddingSelect = document.getElementById("padding");
@@ -585,236 +576,4 @@ d & -b \\
     function normalizeLatex(value) {
       let latex = value.trim();
 
-      const fenced = latex.match(/^```(?:latex|tex)?\s*([\s\S]*?)\s*```$/i);
-      if (fenced) {
-        latex = fenced[1].trim();
-      }
-
-      const wrappers = [
-        /^\\\[([\s\S]*)\\\]$/,
-        /^\$\$([\s\S]*)\$\$$/,
-        /^\\\(([\s\S]*)\\\)$/,
-        /^\$([^$][\s\S]*?)\$$/
-      ];
-
-      for (const wrapper of wrappers) {
-        const match = latex.match(wrapper);
-        if (match) {
-          latex = match[1].trim();
-          break;
-        }
-      }
-
-      return latex;
-    }
-
-    function updateExportStyle() {
-      exportArea.style.padding = `${Number(paddingSelect.value)}px`;
-      exportArea.classList.toggle("transparent", transparentInput.checked);
-      preview.style.fontSize = `${Number(sizeSelect.value)}rem`;
-      
-      // Disable style selector if we're in Text Mode
-      if (modeSelect.value === "text") {
-        styleSelect.disabled = true;
-      } else {
-        styleSelect.disabled = false;
-      }
-    }
-
-    function renderFormula() {
-      updateExportStyle();
-      renderIsValid = false;
-      downloadButton.disabled = true;
-
-      const rawValue = latexInput.value;
-      const isTextMode = modeSelect.value === "text";
-
-      if (!rawValue.trim()) {
-        preview.replaceChildren();
-        setStatus("Empty", "error");
-        setMessage("Enter content to begin.", "error");
-        return false;
-      }
-
-      if (!librariesReady || typeof window.katex === "undefined") {
-        setStatus("Loading");
-        setMessage("Loading KaTeX…");
-        return false;
-      }
-
-      try {
-        if (isTextMode) {
-          if (typeof renderMathInElement === "undefined") {
-            throw new Error("KaTeX auto-render extension is not loaded yet.");
-          }
-          
-          preview.className = "text-mode";
-          // We use textContent to safely inject user text, avoiding HTML injection
-          preview.textContent = rawValue;
-          
-          renderMathInElement(preview, {
-            delimiters: [
-              {left: '$$', right: '$$', display: true},
-              {left: '\\[', right: '\\]', display: true},
-              {left: '$', right: '$', display: false},
-              {left: '\\(', right: '\\)', display: false}
-            ],
-            throwOnError: true,
-            strict: "warn"
-          });
-        } else {
-          preview.className = "";
-          const latex = normalizeLatex(rawValue);
-
-          if (/\\(?:documentclass|usepackage|begin\s*\{document\})/.test(latex)) {
-            preview.replaceChildren();
-            setStatus("Formula only", "error");
-            setMessage("Paste only the formula, not a complete LaTeX document.", "error");
-            return false;
-          }
-
-          katex.render(latex, preview, {
-            displayMode: styleSelect.value === "display",
-            throwOnError: true,
-            trust: false,
-            strict: "warn",
-            output: "htmlAndMathml"
-          });
-        }
-
-        renderIsValid = true;
-        downloadButton.disabled = false;
-        setStatus("Ready", "ready");
-        setMessage(isTextMode ? "Document rendered successfully." : "Formula rendered successfully.", "success");
-        return true;
-      } catch (error) {
-        preview.replaceChildren();
-        setStatus("Error", "error");
-        setMessage(`LaTeX error: ${error.message}`, "error");
-        return false;
-      }
-    }
-
-    function scheduleRender() {
-      window.clearTimeout(renderTimer);
-      renderTimer = window.setTimeout(renderFormula, 160);
-    }
-
-    function nextPngFilename() {
-      let nextNumber = 1;
-
-      try {
-        const stored = Number.parseInt(localStorage.getItem(DOWNLOAD_COUNTER_KEY), 10);
-        if (Number.isFinite(stored) && stored >= 1) {
-          nextNumber = stored;
-        }
-        localStorage.setItem(DOWNLOAD_COUNTER_KEY, String(nextNumber + 1));
-      } catch (error) {
-        // The download still works if localStorage is unavailable.
-      }
-
-      return `${String(nextNumber).padStart(3, "0")}.png`;
-    }
-
-    function triggerDownload(dataUrl, filename) {
-      const link = document.createElement("a");
-      link.download = filename;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }
-
-    async function downloadPng() {
-      if (!renderFormula()) {
-        return;
-      }
-
-      downloadButton.disabled = true;
-      downloadButton.textContent = "Creating PNG…";
-      setMessage("Embedding KaTeX fonts and creating the PNG…");
-
-      try {
-        await document.fonts.ready;
-        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-        const fontEmbedCSS = await htmlToImage.getFontEmbedCSS(exportArea);
-        const pngDataUrl = await htmlToImage.toPng(exportArea, {
-          pixelRatio: Number(scaleSelect.value),
-          cacheBust: false,
-          preferredFontFormat: "woff2",
-          fontEmbedCSS,
-          backgroundColor: transparentInput.checked ? undefined : "#ffffff"
-        });
-
-        triggerDownload(pngDataUrl, nextPngFilename());
-        setMessage("PNG downloaded with the same KaTeX fonts as the preview.", "success");
-      } catch (error) {
-        setMessage(`PNG download failed: ${error.message}`, "error");
-      } finally {
-        downloadButton.textContent = "Download PNG";
-        downloadButton.disabled = !renderIsValid;
-      }
-    }
-
-    function initialize() {
-      updateExportStyle();
-
-      if (window.katexLoadFailed || typeof window.katex === "undefined") {
-        setStatus("Unavailable", "error");
-        setMessage("KaTeX could not be loaded. Check your connection and refresh the page.", "error");
-        return;
-      }
-
-      if (window.imageLibraryLoadFailed || typeof window.htmlToImage === "undefined") {
-        setStatus("Unavailable", "error");
-        setMessage("The PNG export library could not be loaded. Check your connection and refresh the page.", "error");
-        return;
-      }
-
-      librariesReady = true;
-      renderFormula();
-    }
-
-    latexInput.addEventListener("input", () => {
-      exampleSelect.value = "";
-      scheduleRender();
-    });
-
-    exampleSelect.addEventListener("change", () => {
-      if (examples[exampleSelect.value]) {
-        // If they pick the document example, auto-switch to text mode
-        if (exampleSelect.value === "document") {
-          modeSelect.value = "text";
-        } else {
-          modeSelect.value = "single";
-          styleSelect.value = "display";
-        }
-        
-        latexInput.value = examples[exampleSelect.value];
-        renderFormula();
-      }
-    });
-
-    modeSelect.addEventListener("change", renderFormula);
-    styleSelect.addEventListener("change", renderFormula);
-    sizeSelect.addEventListener("change", renderFormula);
-
-    paddingSelect.addEventListener("change", () => {
-      updateExportStyle();
-      setMessage("Export padding updated.", "success");
-    });
-
-    transparentInput.addEventListener("change", () => {
-      updateExportStyle();
-      setMessage(
-        transparentInput.checked ? "Transparent background enabled." : "White background enabled.",
-        "success"
-      );
-    });
-
-    downloadButton.addEventListener("click", downloadPng);
-    window.addEventListener("DOMContentLoaded", initialize);
-  </script>
-</body>
-</html>
+      const fenced = latex.match(/^```(?:latex|tex)?\s*([\s\S]*?)\s*
