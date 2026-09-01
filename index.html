@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="Render standalone LaTeX formulas or mixed text and mathematics as high-resolution PNG images."
+  >
 
   <title>LaTeX to PNG</title>
 
@@ -13,6 +17,7 @@
 
   <style>
     :root {
+      color-scheme: light;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
       --ink: #172033;
@@ -34,7 +39,7 @@
       background: var(--page);
       font-family:
         -apple-system, BlinkMacSystemFont,
-        "Segoe UI", "Noto Sans TC", sans-serif;
+        "Segoe UI", "Noto Sans", sans-serif;
     }
 
     main {
@@ -80,13 +85,11 @@
       min-height: 360px;
       padding: 16px;
       resize: vertical;
-
       color: var(--ink);
-      background: white;
+      background: #fff;
       border: 1px solid #bac7da;
       border-radius: 10px;
       outline: none;
-
       font-family: "SFMono-Regular", Consolas, monospace;
       font-size: 15px;
       line-height: 1.65;
@@ -191,6 +194,7 @@
     .preview-header {
       position: sticky;
       left: 0;
+      z-index: 1;
       padding: 18px 22px;
       background: white;
       border-bottom: 1px solid var(--border);
@@ -238,7 +242,7 @@
       color: inherit;
       font-family:
         Georgia, "Times New Roman",
-        "Noto Serif TC", serif;
+        "Cambria Math", serif;
       font-size: 1.15rem;
       line-height: 1.8;
     }
@@ -281,12 +285,12 @@
     <h1>LaTeX → PNG</h1>
 
     <p class="subtitle">
-      支援純公式，以及一般文字混合行內公式與獨立公式。
+      Render standalone formulas or mixed text with inline and display math.
     </p>
 
     <div class="layout">
       <section class="panel">
-        <label for="latex-input">輸入內容</label>
+        <label for="latex-input">Input</label>
 
         <textarea id="latex-input" spellcheck="false">For $\phi_j$, the same argument gives
 \[
@@ -298,27 +302,36 @@ and
 \]</textarea>
 
         <p class="hint">
-          可輸入純公式，或使用
-          <code>$...$</code>、
-          <code>\(...\)</code>、
-          <code>\[...\]</code>、
-          <code>$$...$$</code>
-          混合一般文字。
+          Enter a standalone formula, or mix ordinary text with
+          <code>$...$</code>,
+          <code>\(...\)</code>,
+          <code>\[...\]</code>,
+          or <code>$$...$$</code> math delimiters.
         </p>
 
         <div class="controls">
           <div class="control-group">
-            <label for="render-mode">解析模式</label>
+            <label for="render-mode">
+              Rendering mode
+            </label>
 
             <select id="render-mode">
-              <option value="auto" selected>自動判斷</option>
-              <option value="formula">純公式</option>
-              <option value="mixed">文字＋公式</option>
+              <option value="auto" selected>
+                Automatic
+              </option>
+
+              <option value="formula">
+                Formula only
+              </option>
+
+              <option value="mixed">
+                Text + math
+              </option>
             </select>
           </div>
 
           <div class="control-group">
-            <label for="scale">解析度</label>
+            <label for="scale">Resolution</label>
 
             <select id="scale">
               <option value="2">2×</option>
@@ -329,11 +342,11 @@ and
 
           <label class="inline-label">
             <input type="checkbox" id="transparent">
-            透明背景
+            Transparent background
           </label>
 
           <button id="download-button" type="button">
-            下載 PNG
+            Download PNG
           </button>
         </div>
 
@@ -341,7 +354,9 @@ and
       </section>
 
       <section class="panel preview-stage">
-        <div class="preview-header">預覽</div>
+        <div class="preview-header">
+          Preview
+        </div>
 
         <div class="preview-scroller">
           <div id="export-area" class="is-mixed">
@@ -352,13 +367,13 @@ and
     </div>
   </main>
 
-  <!-- KaTeX 核心 -->
+  <!-- KaTeX -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.js"></script>
 
-  <!-- 混合文字與公式的自動渲染器 -->
+  <!-- KaTeX automatic rendering -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/contrib/auto-render.min.js"></script>
 
-  <!-- HTML 轉圖片 -->
+  <!-- HTML to PNG -->
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.3/dist/html-to-image.js"></script>
 
   <script>
@@ -386,10 +401,6 @@ and
     const downloadButton =
       document.getElementById("download-button");
 
-    /*
-     * 自動渲染時辨識的公式分隔符號。
-     * $$ 必須放在 $ 前面，否則會被優先誤判成兩個單一 $。
-     */
     const mathDelimiters = [
       {
         left: "$$",
@@ -414,13 +425,11 @@ and
     ];
 
     /*
-     * 如果從 ChatGPT 複製的是：
+     * Remove an outer Markdown code fence:
      *
      * ```latex
-     * x^2+1
+     * x^2 + 1
      * ```
-     *
-     * 就自動移除最外層的 Markdown code fence。
      */
     function removeCodeFence(source) {
       const text = source.trim();
@@ -433,9 +442,8 @@ and
     }
 
     /*
-     * 純公式模式使用 katex.render()。
-     * katex.render() 不需要外層的 \[...\] 或 $...$，
-     * 因此要先移除。
+     * Remove outer delimiters when rendering
+     * one standalone formula.
      */
     function unwrapSingleFormula(source) {
       const text = source.trim();
@@ -488,10 +496,8 @@ and
     }
 
     /*
-     * 自動判斷應使用：
-     *
-     * formula：整段都是一個公式
-     * mixed：一般文字中含有一個或多個公式
+     * Determine whether the input is one formula
+     * or mixed text and mathematics.
      */
     function chooseRenderMode(source) {
       if (renderModeSelect.value !== "auto") {
@@ -504,10 +510,6 @@ and
         source.includes("\\(") ||
         source.includes("$");
 
-      /*
-       * KaTeX auto-render 可以直接識別部分獨立環境，
-       * 例如 align、equation 和 gather。
-       */
       const hasStandaloneEnvironment =
         /\\begin\{(?:align\*?|alignat\*?|equation\*?|gather\*?|multline\*?|CD)\}/
           .test(source);
@@ -543,28 +545,35 @@ and
     }
 
     /*
-     * 渲染整段純公式。
+     * Render one standalone formula.
      */
     function renderFormulaOnly(source) {
-      const result = unwrapSingleFormula(source);
+      const result =
+        unwrapSingleFormula(source);
 
-      katex.render(result.latex, preview, {
-        displayMode: result.displayMode,
-        throwOnError: true,
-        trust: false,
-        strict: "warn"
-      });
+      katex.render(
+        result.latex,
+        preview,
+        {
+          displayMode: result.displayMode,
+          throwOnError: true,
+          trust: false,
+          strict: "warn"
+        }
+      );
     }
 
     /*
-     * 渲染一般文字和多個公式。
-     *
-     * 必須先使用 textContent，不能使用 innerHTML，
-     * 避免使用者輸入的 HTML 被執行。
+     * Render text containing multiple inline
+     * and display formulas.
      */
     function renderMixedContent(source) {
       let automaticRenderError = null;
 
+      /*
+       * Use textContent instead of innerHTML
+       * to prevent user-provided HTML execution.
+       */
       preview.textContent = source;
 
       renderMathInElement(preview, {
@@ -584,14 +593,12 @@ and
       }
     }
 
-    /*
-     * 主要渲染函數。
-     */
     function renderContent() {
       try {
         if (typeof katex === "undefined") {
           throw new Error(
-            "KaTeX 載入失敗，請檢查網路連線。"
+            "KaTeX failed to load. " +
+            "Check your internet connection."
           );
         }
 
@@ -612,10 +619,12 @@ and
 
         if (mode === "mixed") {
           if (
-            typeof renderMathInElement === "undefined"
+            typeof renderMathInElement ===
+            "undefined"
           ) {
             throw new Error(
-              "KaTeX 自動渲染模組載入失敗。"
+              "The KaTeX auto-render extension " +
+              "failed to load."
             );
           }
 
@@ -634,7 +643,8 @@ and
     }
 
     /*
-     * 輸入或切換模式時立即重新渲染。
+     * Update the preview whenever the input
+     * or rendering mode changes.
      */
     latexInput.addEventListener(
       "input",
@@ -647,7 +657,7 @@ and
     );
 
     /*
-     * 透明背景。
+     * Toggle transparent background.
      */
     transparentInput.addEventListener(
       "change",
@@ -660,7 +670,7 @@ and
     );
 
     /*
-     * 下載 PNG。
+     * Generate and download the PNG.
      */
     downloadButton.addEventListener(
       "click",
@@ -669,20 +679,24 @@ and
           return;
         }
 
-        if (typeof htmlToImage === "undefined") {
+        if (
+          typeof htmlToImage === "undefined"
+        ) {
           errorBox.textContent =
-            "圖片輸出模組載入失敗，請檢查網路連線。";
+            "The image export module failed " +
+            "to load. Check your internet connection.";
 
           return;
         }
 
         downloadButton.disabled = true;
-        downloadButton.textContent = "產生中……";
+        downloadButton.textContent =
+          "Generating…";
 
         try {
           /*
-           * 防止 KaTeX 字型尚未載入完成，
-           * 導致輸出的 PNG 缺字或排版錯誤。
+           * Wait for KaTeX fonts before
+           * generating the image.
            */
           await document.fonts.ready;
 
@@ -711,17 +725,18 @@ and
           link.remove();
         } catch (error) {
           errorBox.textContent =
-            "圖片產生失敗：" + error.message;
+            "Image generation failed: " +
+            error.message;
         } finally {
           downloadButton.disabled = false;
           downloadButton.textContent =
-            "下載 PNG";
+            "Download PNG";
         }
       }
     );
 
     /*
-     * 網頁第一次載入時立即預覽。
+     * Initial preview.
      */
     renderContent();
   </script>
