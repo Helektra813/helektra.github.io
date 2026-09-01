@@ -487,17 +487,29 @@
     const DOWNLOAD_COUNTER_KEY = "latex-png-download-number";
 
     const examples = {
-      mixed: String.raw`你 \begin{aligned}
-\int_{\frac14}^{\frac34}\frac{1}{2\sqrt{x}}\,dx
-&= \left[\sqrt{x}\right]_{\frac14}^{\frac34} \\[4pt]
-&= \sqrt{\frac34}-\sqrt{\frac14} \\[4pt]
-&= \boxed{\frac{\sqrt3-1}{2}}.
-\end{aligned}
+      mixed: String.raw`Mixed text and formulas. The inverse of $G$ is
+\[
+G^{-1} = \frac{1}{AB - C^2}
+\begin{pmatrix} B & -C \\ -C & A \end{pmatrix}.
+\]
 
-\begin{aligned}
-\phi_j(x_i)-\phi_j(x_k) &= 0-0=0, \\[5pt]
-\phi_j(x_j)-\phi_j(x_k) &= 1-0=1.
-\end{aligned}`,
+Hence
+\[
+\begin{pmatrix} \alpha \\ \beta \end{pmatrix}
+= G^{-1} \begin{pmatrix} 1 \\ 0 \end{pmatrix},
+\qquad
+\begin{pmatrix} \gamma \\ \delta \end{pmatrix}
+= G^{-1} \begin{pmatrix} 0 \\ 1 \end{pmatrix}.
+\]
+
+Now compute
+\[
+p \cdot q = (\alpha a + \beta b) \cdot (\gamma a + \delta b).
+\]
+This equals
+\[
+\alpha \gamma |a|^2 + (\alpha \delta + \beta \gamma)(a \cdot b) + \beta \delta |b|^2.
+\]`,
 
       spectral: String.raw`T = \int_{\sigma(T)} \lambda\, dE(\lambda).`,
 
@@ -611,10 +623,10 @@ d & -b \\
 
       updateExportStyle();
 
-      // 判斷邏輯：
-      // 1. 包含明確的數學分隔符號 ($$, $, \[, \])
-      // 2. 包含中文、全形字元
-      // 3. 出現超過一個 \begin{...} 區塊
+      // Detection logic:
+      // 1. Contains standard math delimiters ($$, $, \[, \])
+      // 2. Contains any Chinese / CJK characters
+      // 3. Contains multiple \begin{...} blocks
       const hasDelimiters = /(\$\$|\\\[|\\\]|\\\(|\\\)|(^|[^\\])\$)/.test(rawValue);
       const hasChinese = /[\u4e00-\u9fa5]/.test(rawValue);
       const beginMatches = rawValue.match(/\\begin\{[a-zA-Z*]+\}/g);
@@ -631,7 +643,7 @@ d & -b \\
           preview.className = "text-mode";
           preview.textContent = rawValue;
           
-          // 自動支援 $$、\[、\(、$ 以及直接裸寫的 \begin{aligned}、\begin{matrix} 等
+          // Auto-support for delimiters and environments
           renderMathInElement(preview, {
             delimiters: [
               {left: '$$', right: '$$', display: true},
@@ -648,11 +660,11 @@ d & -b \\
               {left: '$', right: '$', display: false},
               {left: '\\(', right: '\\)', display: false}
             ],
-            throwOnError: false, // 避免單一公式錯誤導致整個版面崩潰
+            throwOnError: false,
             strict: "warn"
           });
         } else {
-          // 單一純 LaTeX 公式模式
+          // Single pure LaTeX formula mode
           preview.className = "";
           const latex = normalizeLatex(rawValue);
 
