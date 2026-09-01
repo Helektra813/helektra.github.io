@@ -86,7 +86,7 @@
       padding: 16px;
       resize: vertical;
       color: var(--ink);
-      background: #fff;
+      background: white;
       border: 1px solid #bac7da;
       border-radius: 10px;
       outline: none;
@@ -98,8 +98,8 @@
     textarea:focus,
     select:focus,
     button:focus-visible {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgb(37 99 235 / 16%);
+      outline: 3px solid rgb(37 99 235 / 18%);
+      outline-offset: 2px;
     }
 
     .hint {
@@ -292,14 +292,7 @@
       <section class="panel">
         <label for="latex-input">Input</label>
 
-        <textarea id="latex-input" spellcheck="false">For $\phi_j$, the same argument gives
-\[
-\phi_j(x_i) - \phi_j(x_k) = 0 - 0 = 0,
-\]
-and
-\[
-\phi_j(x_j) - \phi_j(x_k) = 1 - 0 = 1.
-\]</textarea>
+        <textarea id="latex-input" spellcheck="false">T = \int_{\sigma(T)} \lambda\, dE(\lambda).</textarea>
 
         <p class="hint">
           Enter a standalone formula, or mix ordinary text with
@@ -331,7 +324,9 @@ and
           </div>
 
           <div class="control-group">
-            <label for="scale">Resolution</label>
+            <label for="scale">
+              Resolution
+            </label>
 
             <select id="scale">
               <option value="2">2×</option>
@@ -350,7 +345,11 @@ and
           </button>
         </div>
 
-        <div id="error" aria-live="polite"></div>
+        <div
+          id="error"
+          role="alert"
+          aria-live="polite"
+        ></div>
       </section>
 
       <section class="panel preview-stage">
@@ -359,7 +358,7 @@ and
         </div>
 
         <div class="preview-scroller">
-          <div id="export-area" class="is-mixed">
+          <div id="export-area" class="is-formula">
             <div id="preview"></div>
           </div>
         </div>
@@ -370,7 +369,7 @@ and
   <!-- KaTeX -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/katex.min.js"></script>
 
-  <!-- KaTeX automatic rendering -->
+  <!-- Mixed text and formula rendering -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.18.5/dist/contrib/auto-render.min.js"></script>
 
   <!-- HTML to PNG -->
@@ -425,25 +424,37 @@ and
     ];
 
     /*
-     * Remove an outer Markdown code fence:
-     *
-     * ```latex
-     * x^2 + 1
-     * ```
+     * Remove an outer Markdown code fence.
      */
     function removeCodeFence(source) {
       const text = source.trim();
 
-      const match = text.match(
-        /^```(?:latex|tex)?\s*\n?([\s\S]*?)\n?```$/i
-      );
+      const fence =
+        String.fromCharCode(96).repeat(3);
 
-      return match ? match[1].trim() : text;
+      if (
+        !text.startsWith(fence) ||
+        !text.endsWith(fence)
+      ) {
+        return text;
+      }
+
+      const firstLineBreak =
+        text.indexOf("\n");
+
+      return firstLineBreak < 0
+        ? ""
+        : text
+            .slice(
+              firstLineBreak + 1,
+              -fence.length
+            )
+            .trim();
     }
 
     /*
-     * Remove outer delimiters when rendering
-     * one standalone formula.
+     * Remove outer mathematical delimiters
+     * when rendering a standalone formula.
      */
     function unwrapSingleFormula(source) {
       const text = source.trim();
@@ -496,11 +507,13 @@ and
     }
 
     /*
-     * Determine whether the input is one formula
-     * or mixed text and mathematics.
+     * Automatically choose between
+     * standalone-formula and mixed-text modes.
      */
     function chooseRenderMode(source) {
-      if (renderModeSelect.value !== "auto") {
+      if (
+        renderModeSelect.value !== "auto"
+      ) {
         return renderModeSelect.value;
       }
 
@@ -514,22 +527,12 @@ and
         /\\begin\{(?:align\*?|alignat\*?|equation\*?|gather\*?|multline\*?|CD)\}/
           .test(source);
 
-      const hasChineseProse =
-        /[\u3400-\u9fff]/.test(source);
-
-      const hasEnglishProse =
-        /[A-Za-z]{2,}\s+[A-Za-z]{2,}/.test(source);
-
-      if (
+      return (
         hasMathDelimiter ||
-        hasStandaloneEnvironment ||
-        hasChineseProse ||
-        hasEnglishProse
-      ) {
-        return "mixed";
-      }
-
-      return "formula";
+        hasStandaloneEnvironment
+      )
+        ? "mixed"
+        : "formula";
     }
 
     function setPreviewLayout(mode) {
@@ -564,15 +567,15 @@ and
     }
 
     /*
-     * Render text containing multiple inline
-     * and display formulas.
+     * Render ordinary text containing
+     * inline or display formulas.
      */
     function renderMixedContent(source) {
       let automaticRenderError = null;
 
       /*
-       * Use textContent instead of innerHTML
-       * to prevent user-provided HTML execution.
+       * Using textContent prevents
+       * user-provided HTML execution.
        */
       preview.textContent = source;
 
@@ -657,7 +660,7 @@ and
     );
 
     /*
-     * Toggle transparent background.
+     * Toggle the transparent background.
      */
     transparentInput.addEventListener(
       "change",
@@ -694,10 +697,6 @@ and
           "Generating…";
 
         try {
-          /*
-           * Wait for KaTeX fonts before
-           * generating the image.
-           */
           await document.fonts.ready;
 
           const pngDataUrl =
@@ -715,7 +714,7 @@ and
             document.createElement("a");
 
           link.download =
-            "latex-content.png";
+            "spectral-theorem.png";
 
           link.href =
             pngDataUrl;
